@@ -1,0 +1,20 @@
+name: Hello World Pipeline
+
+on:
+    push:
+        branches:
+            - dev
+    workflow_dispatch:
+
+jobs:
+    hello:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Print Hello World and Timestamp
+              run: |
+                  echo "Hello World"
+                  echo "Current Timestamp: $(date)"
