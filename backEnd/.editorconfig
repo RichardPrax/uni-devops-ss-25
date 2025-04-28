@@ -1,0 +1,14 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# Java files
+[*.{class,java}]
+indent_style = space
+indent_size = 4
+max_line_length = 180
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+end_of_line = lf

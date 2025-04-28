@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 200322025_1
+      author: RP
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: custom_exercises
+            constraintName: fk_custom_exercises_general_exercise
+        - addForeignKeyConstraint:
+            baseTableName: custom_exercises
+            baseColumnNames: general_exercise_id
+            referencedTableName: general_exercises
+            referencedColumnNames: id
+            constraintName: fk_custom_exercises_general_exercise
+            onDelete: CASCADE
+
+        - dropForeignKeyConstraint:
+            baseTableName: custom_exercises
+            constraintName: fk_custom_exercises_training_plan
+        - addForeignKeyConstraint:
+            baseTableName: custom_exercises
+            baseColumnNames: training_plan_id
+            referencedTableName: training_plans
+            referencedColumnNames: id
+            constraintName: fk_custom_exercises_training_plan
+            onDelete: CASCADE
+
+        - dropForeignKeyConstraint:
+            baseTableName: training_sessions
+            constraintName: fk_training_sessions_training_plan
+        - addForeignKeyConstraint:
+            baseTableName: training_sessions
+            baseColumnNames: training_plan_id
+            referencedTableName: training_plans
+            referencedColumnNames: id
+            constraintName: fk_training_sessions_training_plan
+            onDelete: CASCADE

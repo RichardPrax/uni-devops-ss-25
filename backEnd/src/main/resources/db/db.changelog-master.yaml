@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: changelogs/01-initial-setup.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changelogs/02-add-cascade-delete-foreign-key.yaml
+      relativeToChangelogFile: true

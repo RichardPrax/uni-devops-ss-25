@@ -1,0 +1,310 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: RP
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created
+                  type: timestamp with time zone
+              - column:
+                  name: modified
+                  type: timestamp with time zone
+              - column:
+                  name: birthdate
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: varchar(255)
+              - createIndex:
+                  indexName: idx_users_name
+                  tableName: users
+                  columns:
+                    - column:
+                        name: first_name
+                    - column:
+                        name: last_name
+              - createIndex:
+                  indexName: idx_user_email
+                  tableName: users
+                  columns:
+                    - column:
+                        name: email
+              - createIndex:
+                  indexName: idx_last_name
+                  tableName: users
+                  columns:
+                    - column:
+                        name: last_name
+
+        - createTable:
+            tableName: training_plans
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created
+                  type: timestamp with time zone
+              - column:
+                  name: modified
+                  type: timestamp with time zone
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: short_description
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: long_description
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tip
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_training_plans_user
+                    references: users(id)
+
+        - createTable:
+            tableName: tokens
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created
+                  type: timestamp with time zone
+              - column:
+                  name: modified
+                  type: timestamp with time zone
+              - column:
+                  name: token
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+              - column:
+                  name: token_type
+                  type: varchar(255)
+              - column:
+                  name: revoked
+                  type: boolean
+              - column:
+                  name: expired
+                  type: boolean
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_tokens_user
+                    references: users(id)
+
+        - createTable:
+            tableName: training_sessions
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created
+                  type: timestamp with time zone
+              - column:
+                  name: modified
+                  type: timestamp with time zone
+              - column:
+                  name: training_plan_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_training_sessions_training_plan
+                    references: training_plans(id)
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_training_sessions_user
+                    references: users(id)
+              - column:
+                  name: date
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: text
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: general_exercises
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created
+                  type: timestamp with time zone
+              - column:
+                  name: modified
+                  type: timestamp with time zone
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: short_description
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: long_description
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: directions
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: video
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: thumbnail_url
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: exercise_categories
+            columns:
+              - column:
+                  name: exercise_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_exercise_categories_exercise
+                    references: general_exercises(id)
+              - column:
+                  name: category
+                  type: varchar(255)
+
+        - createTable:
+            tableName: exercise_equipments
+            columns:
+              - column:
+                  name: exercise_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_exercise_equipments_exercise
+                    references: general_exercises(id)
+              - column:
+                  name: equipment
+                  type: varchar(255)
+
+        - createTable:
+            tableName: custom_exercises
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created
+                  type: timestamp with time zone
+              - column:
+                  name: modified
+                  type: timestamp with time zone
+              - column:
+                  name: general_exercise_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_custom_exercises_general_exercise
+                    references: general_exercises(id)
+              - column:
+                  name: training_plan_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_custom_exercises_training_plan
+                    references: training_plans(id)
+              - column:
+                  name: repetitions
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sets
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: duration_in_minutes
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tip
+                  type: text
+                  constraints:
+                    nullable: false
