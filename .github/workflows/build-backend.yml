@@ -30,19 +30,34 @@ jobs:
       - name: Run Linter (Checkstyle)
         run: ./mvnw checkstyle:check
 
+      - name: Generate Checkstyle HTML Report
+        run: ./mvnw site
+
+      - name: Upload Checkstyle Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: backEnd/target/site/checkstyle.html
+
       - name: Run Unit Tests
         run: ./mvnw test
 
-      - name: Upload Test Reports
+      - name: Upload Test Report (Surefire XML)
         uses: actions/upload-artifact@v4
         with:
-          name: surefire-report
+          name: surefire-xml
           path: backEnd/target/surefire-reports/
+
+      - name: Upload Test HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-html
+          path: backEnd/target/site/surefire-report.html
 
       - name: Run Build
         run: ./mvnw clean package -DskipTests
 
-      - name: Upload JAR
+      - name: Upload Built JAR
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
