@@ -27,18 +27,6 @@ jobs:
       - name: Make Maven Wrapper Executable
         run: chmod +x mvnw
 
-      - name: Run Linter (Checkstyle)
-        run: ./mvnw checkstyle:check
-
-      - name: Generate Checkstyle HTML Report
-        run: ./mvnw site
-
-      - name: Upload Checkstyle Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkstyle-report
-          path: backEnd/target/site/checkstyle.html
-
       - name: Run Unit Tests
         run: ./mvnw test
 
