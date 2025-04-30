@@ -8,11 +8,12 @@ on:
         paths: [backEnd/**]
 
 jobs:
-    setup:
+    test-lint-build:
         runs-on: ubuntu-latest
         defaults:
             run:
                 working-directory: backEnd
+
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
@@ -26,45 +27,25 @@ jobs:
             - name: Make Maven Wrapper Executable
               run: chmod +x mvnw
 
-    test:
-        needs: setup
-        runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: backEnd
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-
             - name: Run Unit Tests
               run: ./mvnw test
 
             - name: Generate HTML Report
               run: ./mvnw surefire-report:report
 
-            - name: Upload Surefire XML Report
+            - name: Upload Test Report (Surefire XML)
               uses: actions/upload-artifact@v4
               with:
                   name: surefire-xml
                   path: backEnd/target/surefire-reports/
 
-            - name: Upload HTML Report
+            - name: Upload Test HTML Report
               uses: actions/upload-artifact@v4
               with:
                   name: test-report-html
-                  path: backEnd/target/site/surefire-report.html
+                  path: backEnd/target/reports/
 
-    build:
-        needs: test
-        runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: backEnd
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-
-            - name: Build Backend JAR
+            - name: Run Build
               run: ./mvnw clean package -DskipTests
 
             - name: Upload Built JAR
