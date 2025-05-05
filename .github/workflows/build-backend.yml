@@ -83,9 +83,15 @@ jobs:
                   java-version: "21"
                   distribution: "temurin"
 
-            - name: Run Checkstyle (fail on violations)
+            - name: Run Checkstyle
               run: ./mvnw checkstyle:check
               working-directory: backEnd
+
+            - name: Upload Checkstyle XML
+              uses: actions/upload-artifact@v4
+              with:
+                  name: checkstyle-xml
+                  path: backEnd/target/checkstyle-result.xml
 
     lint-report:
         runs-on: ubuntu-latest
@@ -107,7 +113,7 @@ jobs:
             - name: Upload Checkstyle Report
               uses: actions/upload-artifact@v4
               with:
-                  name: checkstyle-report
+                  name: checkstyle-report-html
                   path: backEnd/target/site/checkstyle.html
 
     build:
