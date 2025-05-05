@@ -36,19 +36,6 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "birthdate", nullable = false)
     private LocalDate birthdate;
 
-    // TODO: Vor und Nachteile von FetchType.EAGER diskutieren und schauen was wir nehmen wollen/sollten
-    /*
-        Eager loading is a strategy in which the related entities are loaded immediately with the main entity.
-        This means that when you fetch a UserEntity, all the related TrainingPlanEntity and TrainingSessionEntity objects are also fetched at the same time.
-        This can be beneficial if you know that you will need the related entities right away, as it can reduce the number of database queries.
-        However, it can also lead to performance issues if the related entities are large or if there are many of them, as it can result in loading a lot of unnecessary data.
-        Lazy loading, on the other hand, is a strategy in which the related entities are loaded only when they are accessed for the first time.
-        This means that when you fetch a UserEntity, only the UserEntity is loaded, and the related TrainingPlanEntity and TrainingSessionEntity objects are not loaded until you try to access them.
-        This can be beneficial if you don't always need the related entities, as it can reduce the amount of data loaded into memory.
-
-        Es gab das Problem bei den tests, das user.getTrainingPlans().stream() nicht funktioniert hat, weil die Liste nicht initialisiert war.
-        Das gleiche gilt für für die anderen Objekte, da müssen wir überall nochmal schauen
-    */
     @Cascade(CascadeType.ALL)
     @OneToMany(mappedBy = "user", orphanRemoval = true)
     @JsonIgnore
