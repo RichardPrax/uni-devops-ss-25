@@ -61,7 +61,15 @@ public class UserEntity extends BaseEntity implements UserDetails {
         this.birthdate = birthdate;
     }
 
-    public static UserEntity of(String firstName, String lastName, String email, String password, LocalDate birthdate, List<TrainingPlanEntity> trainingPlans, List<TrainingSessionEntity> sessions, Role role, List<TokenEntity> tokens) {
+    public static UserEntity of(String firstName,
+        String lastName,
+        String email,
+        String password,
+        LocalDate birthdate,
+        List<TrainingPlanEntity> trainingPlans,
+        List<TrainingSessionEntity> sessions,
+        Role role,
+        List<TokenEntity> tokens) {
         return new UserEntity(firstName, lastName, email, password, birthdate, trainingPlans, sessions, role, tokens);
     }
 

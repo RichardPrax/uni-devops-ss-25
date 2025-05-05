@@ -57,7 +57,10 @@ public class GeneralExerciseService {
         return generalExerciseRepository.save(generalExercise);
     }
 
-    private void updateGeneralExerciseDetails(NewGeneralExerciseDTO newGeneralExerciseDTO, GeneralExerciseEntity generalExercise, List<Category> categories, List<Equipment> equipment) {
+    private void updateGeneralExerciseDetails(NewGeneralExerciseDTO newGeneralExerciseDTO,
+        GeneralExerciseEntity generalExercise,
+        List<Category> categories,
+        List<Equipment> equipment) {
         generalExercise.setName(newGeneralExerciseDTO.name());
         generalExercise.setCategories(categories);
         generalExercise.setEquipment(equipment);
