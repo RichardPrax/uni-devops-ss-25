@@ -46,7 +46,14 @@ public class GeneralExerciseEntity extends BaseEntity {
     @Column(nullable = false, name = "thumbnail_url")
     private String thumbNailUrl;
 
-    public static GeneralExerciseEntity of(String name, List<Category> categories, List<Equipment> equipment, String shortDescription, String longDescription, String directions, String video, String thumbNailUrl) {
+    public static GeneralExerciseEntity of(String name,
+        List<Category> categories,
+        List<Equipment> equipment,
+        String shortDescription,
+        String longDescription,
+        String directions,
+        String video,
+        String thumbNailUrl) {
         return new GeneralExerciseEntity(name, categories, equipment, shortDescription, longDescription, directions, video, thumbNailUrl);
     }
 }
