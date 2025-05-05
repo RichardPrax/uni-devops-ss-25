@@ -51,7 +51,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: cobertura-coverage
-                  path: backEnd/target/site/jacoco.xml
+                  path: backEnd/target/site/jacoco/jacoco.xml
 
     lint:
         runs-on: ubuntu-latest

@@ -165,7 +165,7 @@
                         <goals><goal>report</goal></goals>
                         <configuration>
                             <formats>
-                                <format>cobertura-xml</format>
+                                <format>XML</format>
                             </formats>
                         </configuration>
                     </execution>
