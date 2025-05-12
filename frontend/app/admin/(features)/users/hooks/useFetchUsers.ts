@@ -1,5 +1,6 @@
-import { User } from "@/app/entities/User";
 import { useState, useEffect } from "react";
+
+import { User } from "@/app/entities/User";
 import { apiFetch } from "@/lib/api";
 
 export function useFetchUsers() {

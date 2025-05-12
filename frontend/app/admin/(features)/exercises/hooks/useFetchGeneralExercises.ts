@@ -1,5 +1,6 @@
-import { GeneralExercise } from "@/app/entities/GeneralExercise";
 import { useState, useEffect } from "react";
+
+import { GeneralExercise } from "@/app/entities/GeneralExercise";
 import { apiFetch } from "@/lib/api";
 
 export function useFetchGeneralExercises() {

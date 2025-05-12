@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import CustomSelect from "./CustomSelect";
-import { useCreateGeneralExercise } from "../../../hooks/useCreateGeneralExercise";
+
 import { NewGeneralExerciseDTO } from "@/app/entities/NewGeneralExerciseDTO";
 import FormInput from "@/components/FormInput";
+
+import CustomSelect from "./CustomSelect";
+import { useCreateGeneralExercise } from "../../../hooks/useCreateGeneralExercise";
 import CategoryModal from "../../../components/CategoryModal";
 import EquipmentModal from "../../../components/EquipmentModal";
 
@@ -40,8 +42,11 @@ export default function CreateGeneralExerciseForm() {
     const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
     const [isEquipmentModalOpen, setEquipmentModalOpen] = useState(false);
 
-    const handleSelectChange = (selectedOptions: any, field: keyof NewGeneralExerciseDTO) => {
-        setFormData({ ...formData, [field]: selectedOptions.map((option: any) => option.value) });
+    const handleSelectChange = (selectedOptions: { value: string; label: string }[], field: keyof NewGeneralExerciseDTO) => {
+        setFormData({
+            ...formData,
+            [field]: selectedOptions.map((option) => option.value),
+        });
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -159,3 +164,4 @@ export default function CreateGeneralExerciseForm() {
         </form>
     );
 }
+

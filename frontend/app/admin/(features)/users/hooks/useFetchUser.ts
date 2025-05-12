@@ -1,5 +1,6 @@
-import { User } from "@/app/entities/User";
 import { useState, useEffect } from "react";
+
+import { User } from "@/app/entities/User";
 import { apiFetch } from "@/lib/api";
 
 export function useFetchUser(userId: string) {
@@ -25,7 +26,8 @@ export function useFetchUser(userId: string) {
 
     useEffect(() => {
         fetchUser();
-    }, [userId]);
+    }, []);
 
     return { user, loading, error, refetch: fetchUser };
 }
+

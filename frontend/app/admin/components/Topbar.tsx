@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useFetchUser } from "../(features)/users/hooks/useFetchUser";
 import { useEffect, useState } from "react";
+
+import { useFetchUser } from "../(features)/users/hooks/useFetchUser";
 
 const Topbar = () => {
     const [id, setId] = useState<string | null>(null);
@@ -18,7 +19,7 @@ const Topbar = () => {
     // Benutzer ist nicht korrekt eingeloggt
     if (!id) return null;
 
-    const { user, loading, error, refetch } = useFetchUser(id);
+    const { user } = useFetchUser(id);
 
     return (
         user && (

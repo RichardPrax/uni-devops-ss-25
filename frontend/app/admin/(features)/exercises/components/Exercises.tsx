@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import ExerciseTable from "./ExerciseTable";
-import { GeneralExercise } from "@/app/entities/GeneralExercise";
 import { useRouter } from "next/navigation";
-import { useDeleteGeneralExercise } from "../hooks/useDeleteGeneralExercise";
+
+import { GeneralExercise } from "@/app/entities/GeneralExercise";
 import ConfirmDeletionDialog from "@/app/admin/components/ConfirmDeletionDialog";
 import SearchBar from "@/components/SearchBar";
+
+import { useDeleteGeneralExercise } from "../hooks/useDeleteGeneralExercise";
+import ExerciseTable from "./ExerciseTable";
 
 interface ExercisesProps {
     exercises: GeneralExercise[];
@@ -20,7 +22,7 @@ export default function Exercises({ exercises, refetchExercises }: ExercisesProp
     const [selectedExercises, setSelectedExercises] = useState<GeneralExercise[]>([]);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-    const { deleteGeneralExercise, loading, error } = useDeleteGeneralExercise();
+    const { deleteGeneralExercise } = useDeleteGeneralExercise();
 
     const filteredExercises = exercises.filter((exercise) => exercise.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -94,3 +96,4 @@ export default function Exercises({ exercises, refetchExercises }: ExercisesProp
         </div>
     );
 }
+

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import CreateGeneralExerciseForm from "./components/CreateGeneralExerciseForm";
 
 export default function CreateGeneralExercisePage() {

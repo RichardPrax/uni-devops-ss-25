@@ -1,7 +1,8 @@
+import { useState } from "react";
+
 import { UpdateUserDTO } from "@/app/entities/UpdateUserDTO";
 import { User } from "@/app/entities/User";
 import { apiFetch } from "@/lib/api";
-import { useState } from "react";
 
 export function useUpdateUser() {
     const [loading, setLoading] = useState(false);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import { NewGeneralExerciseDTO } from "@/app/entities/NewGeneralExerciseDTO";
 import { apiFetch } from "@/lib/api";
 

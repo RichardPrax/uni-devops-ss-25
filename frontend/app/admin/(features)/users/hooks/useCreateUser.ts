@@ -1,5 +1,6 @@
-import { NewUserDTO } from "@/app/entities/NewUserDTO";
 import { useState } from "react";
+
+import { NewUserDTO } from "@/app/entities/NewUserDTO";
 import { apiFetch } from "@/lib/api";
 
 export function useCreateUser() {
