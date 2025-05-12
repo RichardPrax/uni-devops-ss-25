@@ -84,6 +84,17 @@ jobs:
                   name: eslint-report
                   path: frontend/eslint-report.json
 
+            - name: Run Stylelint
+              run: |
+                  npx stylelint "**/*.css" "**/*.scss" --output-file=stylelint-report.json --formatter=json
+              working-directory: frontend
+
+            - name: Upload Stylelint Report
+              uses: actions/upload-artifact@v4
+              with:
+                  name: stylelint-report
+                  path: frontend/stylelint-report.json
+
     build:
         runs-on: ubuntu-latest
         needs: [test, lint]

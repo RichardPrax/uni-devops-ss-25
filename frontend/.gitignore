@@ -14,6 +14,10 @@
 /coverage
 /reports
 
+# lint
+/.eslintcache
+eslint-report.json
+
 # next.js
 /.next/
 /out/
