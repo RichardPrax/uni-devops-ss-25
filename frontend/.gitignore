@@ -17,6 +17,7 @@
 # lint
 /.eslintcache
 eslint-report.json
+stylelint-report.json
 
 # next.js
 /.next/
