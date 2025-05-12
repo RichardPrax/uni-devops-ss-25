@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev --turbopack",
-        "build": "next build --no-lint",
+        "build": "next build",
         "start": "next start",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
         "lint:report": "eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json",
@@ -61,3 +61,4 @@
         "extends": "next/core-web-vitals"
     }
 }
+

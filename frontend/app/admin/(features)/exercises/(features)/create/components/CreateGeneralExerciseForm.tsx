@@ -42,12 +42,12 @@ export default function CreateGeneralExerciseForm() {
     const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
     const [isEquipmentModalOpen, setEquipmentModalOpen] = useState(false);
 
-    const handleSelectChange = (selectedOptions: { value: string; label: string }[], field: keyof NewGeneralExerciseDTO) => {
-        setFormData({
-            ...formData,
-            [field]: selectedOptions.map((option) => option.value),
-        });
-    };
+    const handleSelectChange = (selectedOptions: { value: string; label: string }[] | null, field: keyof NewGeneralExerciseDTO) => {
+            setFormData({
+                ...formData,
+                [field]: selectedOptions ? selectedOptions.map((option) => option.value) : [],
+            });
+        };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -72,7 +72,7 @@ export default function CreateGeneralExerciseForm() {
                 <CustomSelect
                     options={categoryOptions}
                     value={formData.categories}
-                    onChange={(selected) => handleSelectChange(selected, "categories")}
+                    onChange={(selected) => handleSelectChange(selected as { value: string; label: string }[] | null, "categories")}
                     onOpenModal={() => setCategoryModalOpen(true)}
                 />
             </div>
@@ -83,7 +83,7 @@ export default function CreateGeneralExerciseForm() {
                 <CustomSelect
                     options={equipmentOptions}
                     value={formData.equipment}
-                    onChange={(selected) => handleSelectChange(selected, "equipment")}
+                    onChange={(selected) => handleSelectChange(selected as { value: string; label: string }[] | null, "equipment")}
                     onOpenModal={() => setEquipmentModalOpen(true)}
                 />
             </div>
