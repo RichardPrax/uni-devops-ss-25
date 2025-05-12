@@ -1,4 +1,4 @@
-import nextJest from "next/jest";
+const nextJest = require("next/jest");
 
 /** @type {import('jest').Config} */
 const createJestConfig = nextJest({
@@ -28,5 +28,5 @@ const config = {
     ],
 };
 
-export default createJestConfig(config);
+module.exports = createJestConfig(config);
 
