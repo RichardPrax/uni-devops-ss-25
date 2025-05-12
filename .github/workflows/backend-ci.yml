@@ -1,11 +1,12 @@
 name: Backend CI
 
-on:
-    push:
-        branches: [dev]
-        paths: [backEnd/**]
-    pull_request:
-        paths: [backEnd/**]
+on: [push]
+# TODO: activate this when the pipeline is ready
+#    push:
+#        branches: [dev]
+#        paths: [backEnd/**]
+#    pull_request:
+#        paths: [backEnd/**]
 
 jobs:
     setup:

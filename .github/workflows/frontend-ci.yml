@@ -1,11 +1,12 @@
 name: Frontend CI
 
-on:
-    push:
-        branches: [main]
-        paths: [frontend/**]
-    pull_request:
-        paths: [frontend/**]
+on: [push]
+# TODO: activate this when the pipeline is ready
+#    push:
+#        branches: [dev]
+#        paths: [frontEnd/**]
+#    pull_request:
+#        paths: [frontEnd/**]
 
 jobs:
     setup:
