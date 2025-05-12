@@ -1,4 +1,4 @@
-export default {
+const config = {
     extends: "stylelint-config-standard",
     rules: {
         "color-no-invalid-hex": true,
@@ -24,4 +24,6 @@ export default {
         "no-unknown-animations": true,
     },
 };
+
+export default config;
 

@@ -1,9 +1,13 @@
 import React from "react";
 
-// TODO: is it smart to use any?
+interface Entity {
+    id: string;
+    name: string;
+}
+
 interface ConfirmDeletionDialogProps {
     setShowConfirmDialog: (show: boolean) => void;
-    selectedEntities: any[];
+    selectedEntities: Entity[];
     handleDelete: () => void;
 }
 
@@ -31,3 +35,4 @@ export default function ConfirmDeletionDialog({ setShowConfirmDialog, selectedEn
         </div>
     );
 }
+

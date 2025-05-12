@@ -16,8 +16,12 @@ export function useCreateGeneralExercise() {
                 method: "POST",
                 body: JSON.stringify(data),
             });
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError("An unknown error occurred");
+            }
             return null;
         } finally {
             setLoading(false);
@@ -26,3 +30,4 @@ export function useCreateGeneralExercise() {
 
     return { createGeneralExercise, loading, error };
 }
+

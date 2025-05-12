@@ -14,8 +14,12 @@ export function useDeleteGeneralExercise() {
             return await apiFetch(`http://localhost:8080/api/v1/general-exercises/${id}`, {
                 method: "DELETE",
             });
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError("An unknown error occurred");
+            }
             return null;
         } finally {
             setLoading(false);
@@ -24,3 +28,4 @@ export function useDeleteGeneralExercise() {
 
     return { deleteGeneralExercise, loading, error };
 }
+

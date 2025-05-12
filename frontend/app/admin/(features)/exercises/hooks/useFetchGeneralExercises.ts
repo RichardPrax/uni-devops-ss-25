@@ -17,8 +17,12 @@ export function useFetchGeneralExercises() {
                 method: "GET",
             });
             setExercises(data);
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError("An unknown error occurred");
+            }
         } finally {
             setLoading(false);
         }
@@ -30,3 +34,4 @@ export function useFetchGeneralExercises() {
 
     return { exercises, loading, error, refetch: fetchGeneralExercises };
 }
+
