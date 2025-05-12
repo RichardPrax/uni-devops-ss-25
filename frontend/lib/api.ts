@@ -1,8 +1,13 @@
 export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-    const jwtToken = localStorage.getItem("token");
+    let jwtToken: string | null = null;
+
+    // Prüfen, ob der Code im Browser läuft
+    if (typeof window !== "undefined") {
+        jwtToken = localStorage.getItem("token");
+    }
 
     const headers = {
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: jwtToken ? `Bearer ${jwtToken}` : "",
         "Content-Type": "application/json",
         ...(options?.headers || {}),
     };
@@ -22,3 +27,4 @@ export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T
 
     return response.json();
 }
+

@@ -2,11 +2,22 @@
 
 import Image from "next/image";
 import { useFetchUser } from "../(features)/users/hooks/useFetchUser";
+import { useEffect, useState } from "react";
 
 const Topbar = () => {
-    const id = localStorage.getItem("id");
-    // user is not logged in correctly
+    const [id, setId] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Prüfen, ob der Code im Browser läuft
+        if (typeof window !== "undefined") {
+            const storedId = localStorage.getItem("key");
+            setId(storedId);
+        }
+    }, []);
+
+    // Benutzer ist nicht korrekt eingeloggt
     if (!id) return null;
+
     const { user, loading, error, refetch } = useFetchUser(id);
 
     return (
@@ -30,3 +41,4 @@ const Topbar = () => {
 };
 
 export default Topbar;
+
