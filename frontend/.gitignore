@@ -9,10 +9,15 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-package-lock.json
 
 # testing
 /coverage
+/reports
+
+# lint
+/.eslintcache
+eslint-report.json
+stylelint-report.json
 
 # next.js
 /.next/
@@ -42,7 +47,6 @@ yarn-error.log*
 next-env.d.ts
 
 .env
-
 
 # webstorm
 .idea

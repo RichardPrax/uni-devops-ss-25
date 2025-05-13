@@ -1,6 +1,7 @@
 import React from "react";
-import { GeneralExercise } from "@/app/entities/GeneralExercise";
 import { useRouter } from "next/navigation";
+
+import { GeneralExercise } from "@/app/entities/GeneralExercise";
 
 interface ExerciseTableProps {
     exercises: GeneralExercise[];

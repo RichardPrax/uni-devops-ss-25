@@ -1,10 +1,15 @@
 import React from "react";
-import Select from "react-select";
+import Select, { MultiValue, SingleValue } from "react-select";
+
+interface Option {
+    value: string;
+    label: string;
+}
 
 interface CustomSelectProps {
-    options: { value: string; label: string }[];
+    options: Option[];
     value: string[];
-    onChange: (selected: any) => void;
+    onChange: (selected: MultiValue<Option> | SingleValue<Option>) => void;
     onOpenModal: () => void;
 }
 
@@ -62,3 +67,4 @@ export default function CustomSelect({ options, value, onChange, onOpenModal }: 
         </div>
     );
 }
+

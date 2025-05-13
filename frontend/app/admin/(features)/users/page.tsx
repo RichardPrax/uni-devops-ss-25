@@ -2,9 +2,11 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+
+import SearchBar from "@/components/SearchBar";
+
 import { UserTable } from "./components/UserTable";
 import { useFetchUsers } from "./hooks/useFetchUsers";
-import SearchBar from "@/components/SearchBar";
 
 export default function Page() {
     const [searchTerm, setSearchTerm] = useState("");

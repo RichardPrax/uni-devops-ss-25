@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,8 +33,10 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             localStorage.setItem("token", data.accessToken); // save JWT
             localStorage.setItem("id", data.userId); // save user id
             router.push("/admin");
-        } catch (error: any) {
-            alert(error.message);
+        } catch (error) {
+            if (error instanceof Error) {
+                alert(error.message);
+            } else alert("Ein unbekannter Fehler ist aufgetreten");
         }
     };
 

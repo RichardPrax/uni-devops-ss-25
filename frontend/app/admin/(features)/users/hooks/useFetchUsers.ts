@@ -1,5 +1,6 @@
-import { User } from "@/app/entities/User";
 import { useState, useEffect } from "react";
+
+import { User } from "@/app/entities/User";
 import { apiFetch } from "@/lib/api";
 
 export function useFetchUsers() {
@@ -16,8 +17,12 @@ export function useFetchUsers() {
                 method: "GET",
             });
             setUsers(data);
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError("An unknown error occurred");
+            }
         } finally {
             setLoading(false);
         }
@@ -29,3 +34,4 @@ export function useFetchUsers() {
 
     return { users, loading, error, refetch: fetchUsers };
 }
+

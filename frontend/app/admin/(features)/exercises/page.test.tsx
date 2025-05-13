@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+
 import GeneralExercisePage from "./page";
 import { useFetchGeneralExercises } from "./hooks/useFetchGeneralExercises";
 

@@ -13,9 +13,12 @@ const Sidebar = () => {
     ];
 
     const logout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("id");
-        window.location.href = "/login";
+        // Prüfen, ob der Code im Browser läuft
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("token");
+            localStorage.removeItem("id");
+            window.location.href = "/login";
+        }
     };
 
     return (
@@ -58,3 +61,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+

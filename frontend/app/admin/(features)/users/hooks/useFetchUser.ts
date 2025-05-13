@@ -1,5 +1,6 @@
+import { useState, useEffect, useCallback } from "react";
+
 import { User } from "@/app/entities/User";
-import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 
 export function useFetchUser(userId: string) {
@@ -7,7 +8,7 @@ export function useFetchUser(userId: string) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchUser = async () => {
+    const fetchUser = useCallback(async () => {
         setLoading(true);
         setError(null);
 
@@ -16,16 +17,21 @@ export function useFetchUser(userId: string) {
                 method: "GET",
             });
             setUser(data);
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError("An unknown error occurred");
+            }
         } finally {
             setLoading(false);
         }
-    };
+    }, [userId]);
 
     useEffect(() => {
         fetchUser();
-    }, [userId]);
+    }, [userId, fetchUser]);
 
     return { user, loading, error, refetch: fetchUser };
 }
+

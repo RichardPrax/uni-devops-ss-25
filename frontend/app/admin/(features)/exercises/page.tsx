@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import Exercises from "./components/Exercises";
 import { useFetchGeneralExercises } from "./hooks/useFetchGeneralExercises";
 

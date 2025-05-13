@@ -1,5 +1,6 @@
-import { NewUserDTO } from "@/app/entities/NewUserDTO";
 import { useState } from "react";
+
+import { NewUserDTO } from "@/app/entities/NewUserDTO";
 import { apiFetch } from "@/lib/api";
 
 export function useCreateUser() {
@@ -15,8 +16,12 @@ export function useCreateUser() {
                 method: "POST",
                 body: JSON.stringify(userData),
             });
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError("An unknown error occurred");
+            }
             return null;
         } finally {
             setLoading(false);
@@ -25,3 +30,4 @@ export function useCreateUser() {
 
     return { createUser, loading, error };
 }
+

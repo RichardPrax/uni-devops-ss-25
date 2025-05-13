@@ -1,8 +1,9 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import { useRouter } from "next/navigation";
+
 import CreateGeneralExerciseForm from "./CreateGeneralExerciseForm";
 import { useCreateGeneralExercise } from "../../../hooks/useCreateGeneralExercise";
-import { useRouter } from "next/navigation";
 
 // Mock the router
 jest.mock("next/navigation", () => ({

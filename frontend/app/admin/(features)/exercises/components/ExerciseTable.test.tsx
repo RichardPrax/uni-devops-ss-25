@@ -1,7 +1,8 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import ExerciseTable from "./ExerciseTable";
 import { useRouter } from "next/navigation";
+
+import ExerciseTable from "./ExerciseTable";
 
 // Mock the router
 jest.mock("next/navigation", () => ({

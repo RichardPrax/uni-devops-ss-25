@@ -5,12 +5,28 @@ import { FlatCompat } from "@eslint/eslintrc";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Für Kompatibilität mit bestehenden Plugins wie eslint-config-next
 const compat = new FlatCompat({
-  baseDirectory: __dirname,
+    baseDirectory: __dirname,
 });
 
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+const config = [
+    {
+        ignores: ["node_modules", ".next", "out", "public"],
+    },
+    ...compat.extends("next/core-web-vitals", "next/typescript"),
+    {
+        rules: {
+            "react/react-in-jsx-scope": "off",
+            "import/order": [
+                "warn",
+                {
+                    groups: [["builtin", "external"], ["internal"], ["parent", "sibling", "index"]],
+                    "newlines-between": "always",
+                },
+            ],
+        },
+    },
 ];
 
-export default eslintConfig;
+export default config;
