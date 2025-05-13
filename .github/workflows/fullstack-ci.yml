@@ -100,7 +100,7 @@ jobs:
           node-version: "20"
       - name: Install Dependencies
         run: npm ci
-        working-directory: frontEnd
+        working-directory: frontend
 
   frontend-test:
     needs: frontend-setup
@@ -111,13 +111,13 @@ jobs:
         with:
           node-version: "20"
       - run: npm ci
-        working-directory: frontEnd
+        working-directory: frontend
       - run: npm run test
-        working-directory: frontEnd
+        working-directory: frontend
       - uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
-          path: frontEnd/coverage/
+          path: frontend/coverage/
 
   frontend-lint:
     needs: frontend-setup
@@ -129,15 +129,15 @@ jobs:
         with:
           node-version: "20"
       - run: npm ci
-        working-directory: frontEnd
+        working-directory: frontend
       - name: Run ESLint
         run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
-        working-directory: frontEnd
+        working-directory: frontend
       - name: Upload ESLint Report
         uses: actions/upload-artifact@v4
         with:
           name: eslint-report
-          path: frontEnd/eslint-report.json
+          path: frontend/eslint-report.json
 
   frontend-build:
     needs: [frontend-test, frontend-lint]
@@ -148,10 +148,10 @@ jobs:
         with:
           node-version: "20"
       - run: npm ci
-        working-directory: frontEnd
+        working-directory: frontend
       - run: npm run build
-        working-directory: frontEnd
+        working-directory: frontend
       - uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: frontEnd/.next/
+          path: frontend/.next/
