@@ -13,7 +13,7 @@ export default function Hero() {
 
             {/* Textinhalt */}
             <div className="relative text-left max-w-3xl z-10">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight">Körperschmiede</h1>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight">Hallo Körperschmiede</h1>
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mt-4 text-white">Deine Gesundheit. Deine Stärke.</h2>
                 <p className="text-base sm:text-lg md:text-xl text-white mt-6 leading-relaxed">
                     In der Körperschmiede vereinen wir moderne Physiotherapie mit individuell abgestimmten Behandlungsmethoden.
