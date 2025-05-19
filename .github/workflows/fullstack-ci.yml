@@ -98,7 +98,7 @@ jobs:
               working-directory: backEnd
 
     backend-build:
-        needs: [backend-test, backend-lint]
+        needs: [backend-test, backend-lint, backend-sonarqube]
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -196,7 +196,7 @@ jobs:
               working-directory: frontend
 
     frontend-build:
-        needs: [frontend-test, frontend-lint]
+        needs: [frontend-test, frontend-lint, frontend-sonarqube]
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
