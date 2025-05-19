@@ -10,10 +10,10 @@ on:
 
 jobs:
     #################################
-    # BACKEND
+    # backEnd
     #################################
 
-    backend-setup:
+    backEnd-setup:
         runs-on: ubuntu-latest
         outputs:
             cache-key: ${{ steps.cache.outputs.cache-hit }}
@@ -33,10 +33,10 @@ jobs:
                       maven-${{ runner.os }}-
             - name: Make Maven Executable
               run: chmod +x mvnw
-              working-directory: backend
+              working-directory: backEnd
 
-    backend-test:
-        needs: backend-setup
+    backEnd-test:
+        needs: backEnd-setup
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -51,20 +51,20 @@ jobs:
                   key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
             - name: Run Tests
               run: ./mvnw clean verify
-              working-directory: backend
+              working-directory: backEnd
             - name: Upload JUnit Results
               uses: actions/upload-artifact@v4
               with:
-                  name: backend-junit
-                  path: backend/target/surefire-reports/
+                  name: backEnd-junit
+                  path: backEnd/target/surefire-reports/
             - name: Upload Coverage
               uses: actions/upload-artifact@v4
               with:
-                  name: backend-coverage
-                  path: backend/target/site/jacoco/jacoco.xml
+                  name: backEnd-coverage
+                  path: backEnd/target/site/jacoco/jacoco.xml
 
-    backend-lint:
-        needs: backend-setup
+    backEnd-lint:
+        needs: backEnd-setup
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -79,15 +79,15 @@ jobs:
                   key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
             - name: Checkstyle
               run: ./mvnw checkstyle:check
-              working-directory: backend
+              working-directory: backEnd
             - name: Upload Checkstyle Report
               uses: actions/upload-artifact@v4
               with:
                   name: checkstyle-report
-                  path: backend/target/checkstyle-result.xml
+                  path: backEnd/target/checkstyle-result.xml
 
-    backend-sonarqube:
-        needs: backend-test
+    backEnd-sonarqube:
+        needs: backEnd-test
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -103,14 +103,14 @@ jobs:
             - name: Download Coverage
               uses: actions/download-artifact@v4
               with:
-                  name: backend-coverage
-                  path: backend/target/site/jacoco/
+                  name: backEnd-coverage
+                  path: backEnd/target/site/jacoco/
             - name: SonarQube Scan
               run: ./mvnw sonar:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-              working-directory: backend
+              working-directory: backEnd
 
-    backend-build:
-        needs: [backend-test, backend-lint]
+    backEnd-build:
+        needs: [backEnd-test, backEnd-lint]
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -125,12 +125,12 @@ jobs:
                   key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
             - name: Build JAR
               run: ./mvnw clean package -DskipTests
-              working-directory: backend
+              working-directory: backEnd
             - name: Upload JAR
               uses: actions/upload-artifact@v4
               with:
-                  name: backend-jar
-                  path: backend/target/*.jar
+                  name: backEnd-jar
+                  path: backEnd/target/*.jar
 
     #################################
     # FRONTEND
