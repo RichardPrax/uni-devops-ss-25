@@ -192,7 +192,7 @@ jobs:
               working-directory: frontend
             - name: Run SonarQube Scan
               run: |
-                  npx sonar-scanner -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+                  npx sonar-scanner -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.token=${{ secrets.SONAR_TOKEN }}
               working-directory: frontend
 
     frontend-build:
