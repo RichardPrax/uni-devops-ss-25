@@ -5,8 +5,8 @@ on:
         branches: ["*"]
     pull_request:
         paths:
-            - "frontEnd/**"
-            - "backEnd/**"
+            - "frontend/**"
+            - "backend/**"
 
 jobs:
     #################################
@@ -15,18 +15,25 @@ jobs:
 
     backend-setup:
         runs-on: ubuntu-latest
+        outputs:
+            cache-key: ${{ steps.cache.outputs.cache-hit }}
         steps:
             - uses: actions/checkout@v4
-
-            - name: Set up JDK
-              uses: actions/setup-java@v3
+            - uses: actions/setup-java@v3
               with:
                   java-version: "21"
                   distribution: "temurin"
-
+            - name: Cache Maven packages
+              id: cache
+              uses: actions/cache@v3
+              with:
+                  path: ~/.m2
+                  key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+                  restore-keys: |
+                      maven-${{ runner.os }}-
             - name: Make Maven Executable
               run: chmod +x mvnw
-              working-directory: backEnd
+              working-directory: backend
 
     backend-test:
         needs: backend-setup
@@ -37,19 +44,24 @@ jobs:
               with:
                   java-version: "21"
                   distribution: "temurin"
+            - name: Restore Maven cache
+              uses: actions/cache@v3
+              with:
+                  path: ~/.m2
+                  key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
             - name: Run Tests
               run: ./mvnw clean verify
-              working-directory: backEnd
-            - name: Upload Test Results
+              working-directory: backend
+            - name: Upload JUnit Results
               uses: actions/upload-artifact@v4
               with:
                   name: backend-junit
-                  path: backEnd/target/surefire-reports/
-            - name: Upload Coverage (Jacoco)
+                  path: backend/target/surefire-reports/
+            - name: Upload Coverage
               uses: actions/upload-artifact@v4
               with:
                   name: backend-coverage
-                  path: backEnd/target/site/jacoco/jacoco.xml
+                  path: backend/target/site/jacoco/jacoco.xml
 
     backend-lint:
         needs: backend-setup
@@ -60,42 +72,42 @@ jobs:
               with:
                   java-version: "21"
                   distribution: "temurin"
+            - name: Restore Maven cache
+              uses: actions/cache@v3
+              with:
+                  path: ~/.m2
+                  key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
             - name: Checkstyle
               run: ./mvnw checkstyle:check
-              working-directory: backEnd
+              working-directory: backend
             - name: Upload Checkstyle Report
               uses: actions/upload-artifact@v4
               with:
                   name: checkstyle-report
-                  path: backEnd/target/checkstyle-result.xml
+                  path: backend/target/checkstyle-result.xml
 
     backend-sonarqube:
         needs: backend-test
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
-
-            - name: Set up JDK
-              uses: actions/setup-java@v3
+            - uses: actions/setup-java@v3
               with:
                   java-version: "21"
                   distribution: "temurin"
-
-            - name: Cache Maven packages
+            - name: Restore Maven cache
               uses: actions/cache@v3
               with:
                   path: ~/.m2
-                  key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-maven-
-
-            - name: Build project and run tests
-              run: ./mvnw clean verify
-              working-directory: backEnd
-
-            - name: SonarQube Scan via Maven
+                  key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+            - name: Download Coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: backend-coverage
+                  path: backend/target/site/jacoco/
+            - name: SonarQube Scan
               run: ./mvnw sonar:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-              working-directory: backEnd
+              working-directory: backend
 
     backend-build:
         needs: [backend-test, backend-lint]
@@ -106,17 +118,22 @@ jobs:
               with:
                   java-version: "21"
                   distribution: "temurin"
+            - name: Restore Maven cache
+              uses: actions/cache@v3
+              with:
+                  path: ~/.m2
+                  key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
             - name: Build JAR
               run: ./mvnw clean package -DskipTests
-              working-directory: backEnd
-            - name: Upload Backend Artifact
+              working-directory: backend
+            - name: Upload JAR
               uses: actions/upload-artifact@v4
               with:
                   name: backend-jar
-                  path: backEnd/target/*.jar
+                  path: backend/target/*.jar
 
     #################################
-    # FRONTEND PIPELINE
+    # FRONTEND
     #################################
 
     frontend-setup:
@@ -126,6 +143,13 @@ jobs:
             - uses: actions/setup-node@v3
               with:
                   node-version: "20"
+            - name: Cache npm
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      npm-${{ runner.os }}-
             - name: Install Dependencies
               run: npm ci
               working-directory: frontend
@@ -138,13 +162,18 @@ jobs:
             - uses: actions/setup-node@v3
               with:
                   node-version: "20"
+            - name: Restore npm cache
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
             - name: Install Dependencies
               run: npm ci
               working-directory: frontend
             - name: Run Tests
               run: npm run test
               working-directory: frontend
-            - name: Upload Coverage Report
+            - name: Upload Coverage
               uses: actions/upload-artifact@v4
               with:
                   name: frontend-coverage
@@ -153,12 +182,16 @@ jobs:
     frontend-lint:
         needs: frontend-setup
         runs-on: ubuntu-latest
-        continue-on-error: true
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v3
               with:
                   node-version: "20"
+            - name: Restore npm cache
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
             - name: Install Dependencies
               run: npm ci
               working-directory: frontend
@@ -179,20 +212,24 @@ jobs:
             - uses: actions/setup-node@v3
               with:
                   node-version: "20"
-            - name: Install Sonar Scanner CLI
+            - name: Restore npm cache
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+            - name: Install Sonar Scanner
               run: npm install -g sonar-scanner
-            - name: Install Dependencies
-              run: npm ci
-              working-directory: frontend
-            - name: Run ESLint
-              run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
-              working-directory: frontend
-            - name: Run Tests (with coverage)
-              run: npm run test -- --coverage
-              working-directory: frontend
+            - name: Download Coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-coverage
+                  path: frontend/coverage/
             - name: Run SonarQube Scan
               run: |
-                  npx sonar-scanner -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+                  sonar-scanner \
+                    -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+                    -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+                    -Dsonar.token=${{ secrets.SONAR_TOKEN }}
               working-directory: frontend
 
     frontend-build:
@@ -203,13 +240,18 @@ jobs:
             - uses: actions/setup-node@v3
               with:
                   node-version: "20"
+            - name: Restore npm cache
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
             - name: Install Dependencies
               run: npm ci
               working-directory: frontend
             - name: Build Next.js
               run: npm run build
               working-directory: frontend
-            - name: Upload Frontend Build Artifact
+            - name: Upload Build
               uses: actions/upload-artifact@v4
               with:
                   name: frontend-build
