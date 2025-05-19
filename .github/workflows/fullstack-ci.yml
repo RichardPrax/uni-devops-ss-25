@@ -114,71 +114,100 @@ jobs:
               with:
                   name: backend-jar
                   path: backEnd/target/*.jar
-# TODO: activate frontend jobs when backend sonarqube is working
-#################################
-# FRONTEND
-#################################
-#    frontend-setup:
-#        runs-on: ubuntu-latest
-#        steps:
-#            - uses: actions/checkout@v4
-#            - uses: actions/setup-node@v3
-#              with:
-#                  node-version: "20"
-#            - name: Install Dependencies
-#              run: npm ci
-#              working-directory: frontend
-#
-#    frontend-test:
-#        needs: frontend-setup
-#        runs-on: ubuntu-latest
-#        steps:
-#            - uses: actions/checkout@v4
-#            - uses: actions/setup-node@v3
-#              with:
-#                  node-version: "20"
-#            - run: npm ci
-#              working-directory: frontend
-#            - run: npm run test
-#              working-directory: frontend
-#            - uses: actions/upload-artifact@v4
-#              with:
-#                  name: frontend-coverage
-#                  path: frontend/coverage/
-#
-#    frontend-lint:
-#        needs: frontend-setup
-#        runs-on: ubuntu-latest
-#        continue-on-error: true
-#        steps:
-#            - uses: actions/checkout@v4
-#            - uses: actions/setup-node@v3
-#              with:
-#                  node-version: "20"
-#            - run: npm ci
-#              working-directory: frontend
-#            - name: Run ESLint
-#              run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
-#              working-directory: frontend
-#            - name: Upload ESLint Report
-#              uses: actions/upload-artifact@v4
-#              with:
-#                  name: eslint-report
-#                  path: frontend/eslint-report.json
-#
-#    frontend-build:
-#        needs: [frontend-test, frontend-lint]
-#        runs-on: ubuntu-latest
-#        steps:
-#            - uses: actions/checkout@v4
-#            - uses: actions/setup-node@v3
-#              with:
-#                  node-version: "20"
-#            - run: npm ci
-#              working-directory: frontend
-#            - run: npm run build
-#              working-directory: frontend
-#            - uses: actions/upload-artifact@v4
-#              with:
-#                  name: frontend-build
-#                  path: frontend/.next/
+
+    #################################
+    # FRONTEND PIPELINE
+    #################################
+
+    frontend-setup:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+            - name: Install Dependencies
+              run: npm ci
+              working-directory: frontend
+
+    frontend-test:
+        needs: frontend-setup
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+            - name: Install Dependencies
+              run: npm ci
+              working-directory: frontend
+            - name: Run Tests
+              run: npm run test
+              working-directory: frontend
+            - name: Upload Coverage Report
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-coverage
+                  path: frontend/coverage/
+
+    frontend-lint:
+        needs: frontend-setup
+        runs-on: ubuntu-latest
+        continue-on-error: true
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+            - name: Install Dependencies
+              run: npm ci
+              working-directory: frontend
+            - name: Run ESLint
+              run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
+              working-directory: frontend
+            - name: Upload ESLint Report
+              uses: actions/upload-artifact@v4
+              with:
+                  name: eslint-report
+                  path: frontend/eslint-report.json
+
+    frontend-sonarqube:
+        needs: frontend-test
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+            - name: Install Sonar Scanner CLI
+              run: npm install -g sonar-scanner
+            - name: Install Dependencies
+              run: npm ci
+              working-directory: frontend
+            - name: Run SonarQube Scan
+              run: sonar-scanner \
+                  -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_FRONTEND }} \
+                  -Dsonar.sources=./frontend \
+                  -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+                  -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+                  -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
+
+    frontend-build:
+        needs: [frontend-test, frontend-lint]
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+            - name: Install Dependencies
+              run: npm ci
+              working-directory: frontend
+            - name: Build Next.js
+              run: npm run build
+              working-directory: frontend
+            - name: Upload Frontend Build Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-build
+                  path: frontend/.next/
