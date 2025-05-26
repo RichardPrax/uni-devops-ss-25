@@ -43,7 +43,7 @@ jobs:
                   key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
                   restore-keys: |
                       ${{ runner.os }}-maven-
-            - name: Build, Test & Lint (Checkstyle)
+            - name: Build, Test & Lint
               run: ./mvnw clean verify checkstyle:check
               working-directory: backEnd
             - name: SonarQube Scan via Maven
