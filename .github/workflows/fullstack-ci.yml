@@ -97,84 +97,107 @@ jobs:
   # FRONTEND PIPELINE
   #################################
 
-  # frontend-setup:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: "20"
-  #     - name: Cache node modules
-  #       id: cache-npm
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: frontend/node_modules
-  #         key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-npm-cache-frontend-
-  #     - name: Install Dependencies
-  #       if: steps.cache-npm.outputs.cache-hit != 'true'
-  #       run: npm ci
-  #       working-directory: frontend
+  frontend-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-cache-frontend-
+      - name: Install Dependencies
+        if: steps.cache-npm.outputs.cache-hit != 'true'
+        run: npm ci
+        working-directory: frontend
 
-  # frontend-ci:
-  #   needs: frontend-setup
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: "20"
-  #     - name: Cache node modules
-  #       id: cache-npm
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: frontend/node_modules
-  #         key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-npm-cache-frontend-
-  #     - name: Install Dependencies
-  #       run: npm ci
-  #       working-directory: frontend
-  #     - name: Run ESLint
-  #       run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
-  #       working-directory: frontend
-  #     - name: Run Tests (with coverage)
-  #       run: npm run test -- --coverage
-  #       working-directory: frontend
-  #     - name: Install Sonar Scanner CLI
-  #       run: npm install -g sonar-scanner
-  #     - name: Run SonarQube Scan
-  #       run: |
-  #         npx sonar-scanner \
-  #           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-  #           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-  #       working-directory: frontend
+  frontend-ci:
+    needs: frontend-setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-cache-frontend-
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Run ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
+        working-directory: frontend
+      - name: Run Tests (with coverage)
+        run: npm run test -- --coverage
+        working-directory: frontend
+      - name: Install Sonar Scanner CLI
+        run: npm install -g sonar-scanner
+      - name: Run SonarQube Scan
+        run: |
+          npx sonar-scanner \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+        working-directory: frontend
 
-  # frontend-build:
-  #   needs: frontend-ci
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: "20"
-  #     - name: Restore cached node modules
-  #       id: cache-npm
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: frontend/node_modules
-  #         key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-npm-cache-frontend-
-  #     - name: Install Dependencies
-  #       run: npm ci
-  #       working-directory: frontend
-  #     - name: Build Next.js
-  #       run: npm run build
-  #       working-directory: frontend
-  #     - name: Upload Frontend Build Artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: frontend-build
-  #         path: frontend/.next/
+  frontend-build:
+    needs: frontend-ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+      - name: Restore cached node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-cache-frontend-
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Build Next.js
+        run: npm run build
+        working-directory: frontend
+      - name: Upload Frontend Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            frontend/.next/
+            frontend/public/
+            frontend/package.json
+            frontend/package-lock.json
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:latest
