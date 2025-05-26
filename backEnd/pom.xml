@@ -33,6 +33,8 @@
         <jjwt.version>0.12.6</jjwt.version>
         <nimbus.version>10.2</nimbus.version>
         <postgres.version>42.7.5</postgres.version>
+
+        <sonar.java.checkstyle.reportPaths>${project.build.directory}/checkstyle-result.xml</sonar.java.checkstyle.reportPaths>
     </properties>
 
     <dependencies>
