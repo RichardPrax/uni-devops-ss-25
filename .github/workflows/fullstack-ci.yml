@@ -140,6 +140,7 @@ jobs:
               working-directory: frontend
 
     frontend-ci:
+        needs: frontend-setup
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
