@@ -47,10 +47,12 @@ jobs:
               run: ./mvnw clean verify checkstyle:check
               working-directory: backEnd
             - name: SonarQube Scan via Maven
-              run: ./mvnw sonar:sonar \
-                  -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BE }} \
-                  -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-                  -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+              run: |
+                  ./mvnw sonar:sonar \
+                    -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BE }} \
+                    -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+                    -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
               working-directory: backEnd
 
     backend-build:
