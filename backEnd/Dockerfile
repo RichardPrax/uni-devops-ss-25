@@ -1,25 +1,6 @@
-# Build Image - referencable by build
-FROM maven:3.9-eclipse-temurin-21 as build
-WORKDIR /workspace/app
-
-# COPY POM
-COPY pom.xml pom.xml
-
-# COPY sources
-COPY src src
-
-# Jar packen
-RUN mvn package -DskipTests
-
-# Final image
 FROM eclipse-temurin:21-jre
-ARG DEPENDENCY=/workspace/app/target
-
-# Copy build results
+ARG JAR_FILE=target/koerperschmiede-api.jar
 WORKDIR /app
-COPY --from=build ${DEPENDENCY}/koerperschmiede-api.jar .
-
-# Specify listening port
+COPY ${JAR_FILE} app.jar
 EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "koerperschmiede-api.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
