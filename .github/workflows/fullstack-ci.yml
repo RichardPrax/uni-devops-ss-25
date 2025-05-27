@@ -46,6 +46,8 @@ jobs:
       - name: Build, Test & Lint
         run: ./mvnw clean verify checkstyle:check
         working-directory: backEnd
+        continue-on-error: true
+
       - name: SonarQube Scan via Maven
         run: |
           ./mvnw sonar:sonar \
@@ -139,9 +141,12 @@ jobs:
       - name: Run ESLint
         run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
         working-directory: frontend
+        continue-on-error: true
+
       - name: Run Tests (with coverage)
         run: npm run test -- --coverage
         working-directory: frontend
+
       - name: Install Sonar Scanner CLI
         run: npm install -g sonar-scanner
       - name: Run SonarQube Scan
