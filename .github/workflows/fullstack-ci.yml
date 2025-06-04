@@ -1,208 +1,216 @@
 name: Full Stack CI
 
 on:
-  push:
-    branches: ["*"]
-  pull_request:
-    paths:
-      - "frontEnd/**"
-      - "backEnd/**"
+    push:
+        branches: ["*"]
+    pull_request:
+        paths:
+            - "frontEnd/**"
+            - "backEnd/**"
 
 jobs:
-  #################################
-  # BACKEND
-  #################################
+    #################################
+    # BACKEND
+    #################################
 
-  backend-setup:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: "21"
-          distribution: "temurin"
-      - name: Make Maven Executable
-        run: chmod +x mvnw
-        working-directory: backEnd
+    backend-setup:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up JDK
+              uses: actions/setup-java@v3
+              with:
+                  java-version: "21"
+                  distribution: "temurin"
+            - name: Make Maven Executable
+              run: chmod +x mvnw
+              working-directory: backEnd
 
-  backend-ci:
-    needs: backend-setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: "21"
-          distribution: "temurin"
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: Build, Test & Lint
-        run: ./mvnw clean verify checkstyle:check
-        working-directory: backEnd
-        continue-on-error: true
+    backend-ci:
+        needs: backend-setup
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up JDK
+              uses: actions/setup-java@v3
+              with:
+                  java-version: "21"
+                  distribution: "temurin"
+            - name: Cache Maven packages
+              uses: actions/cache@v3
+              with:
+                  path: ~/.m2
+                  key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-maven-
+            - name: Build, Test & Lint
+              run: ./mvnw clean verify checkstyle:check
+              working-directory: backEnd
+              continue-on-error: true
 
-      - name: SonarQube Scan via Maven
-        run: |
-          ./mvnw sonar:sonar \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BE }} \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            - name: SonarQube Scan via Maven
+              run: |
+                  ./mvnw sonar:sonar \
+                    -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BE }} \
+                    -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+                    -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+              working-directory: backEnd
 
-        working-directory: backEnd
+    backend-build:
+        needs: backend-ci
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up JDK
+              uses: actions/setup-java@v3
+              with:
+                  java-version: "21"
+                  distribution: "temurin"
+            - name: Build JAR
+              run: ./mvnw clean package -DskipTests
+              working-directory: backEnd
+            - name: Upload Backend Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: backend-jar
+                  path: backEnd/target/*.jar
 
-  backend-build:
-    needs: backend-ci
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: "21"
-          distribution: "temurin"
-      - name: Build JAR
-        run: ./mvnw clean package -DskipTests
-        working-directory: backEnd
-      - name: Upload Backend Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-jar
-          path: backEnd/target/*.jar
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+            - name: Build and push Docker image
+              uses: docker/build-push-action@v5
+              with:
+                  context: backEnd
+                  file: backEnd/Dockerfile
+                  push: true
+                  tags: |
+                      ${{ secrets.DOCKER_USERNAME }}/devops-github-backend:${{ github.sha }}
+                      ${{ secrets.DOCKER_USERNAME }}/devops-github-backend:latest
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: backEnd
-          file: backEnd/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/devops-github-backend:${{ github.sha }}
-            ${{ secrets.DOCKER_USERNAME }}/devops-github-backend:latest
+    #################################
+    # FRONTEND
+    #################################
 
-  #################################
-  # FRONTEND PIPELINE
-  #################################
+    frontend-setup:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+            - name: Cache node modules
+              id: cache-npm
+              uses: actions/cache@v3
+              with:
+                  path: frontend/node_modules
+                  key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-npm-cache-frontend-
+            - name: Install Dependencies
+              if: steps.cache-npm.outputs.cache-hit != 'true'
+              run: npm ci
+              working-directory: frontend
 
-  frontend-setup:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "20"
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v3
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-cache-frontend-
-      - name: Install Dependencies
-        if: steps.cache-npm.outputs.cache-hit != 'true'
-        run: npm ci
-        working-directory: frontend
+    frontend-ci:
+        needs: frontend-setup
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+            - name: Cache node modules
+              id: cache-npm
+              uses: actions/cache@v3
+              with:
+                  path: frontend/node_modules
+                  key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-npm-cache-frontend-
+            - name: Install Dependencies
+              run: npm ci
+              working-directory: frontend
 
-  frontend-ci:
-    needs: frontend-setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "20"
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v3
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-cache-frontend-
-      - name: Install Dependencies
-        run: npm ci
-        working-directory: frontend
-      - name: Run ESLint
-        run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
-        working-directory: frontend
-        continue-on-error: true
+            - name: Run ESLint
+              run: npx eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json
+              working-directory: frontend
+              continue-on-error: true
 
-      - name: Run Tests (with coverage)
-        run: npm run test -- --coverage
-        working-directory: frontend
+            - name: Run Stylelint
+              run: npx stylelint "**/*.{css,scss}" --custom-formatter json > stylelint-report.json
+              working-directory: frontend
+              continue-on-error: true
 
-      - name: Install Sonar Scanner CLI
-        run: npm install -g sonar-scanner
-      - name: Run SonarQube Scan
-        run: |
-          npx sonar-scanner \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-        working-directory: frontend
+            - name: Run Tests (with coverage)
+              run: npm run test -- --coverage
+              working-directory: frontend
 
-  frontend-build:
-    needs: frontend-ci
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "20"
-      - name: Restore cached node modules
-        id: cache-npm
-        uses: actions/cache@v3
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-cache-frontend-
-      - name: Install Dependencies
-        run: npm ci
-        working-directory: frontend
-      - name: Build Next.js
-        run: npm run build
-        working-directory: frontend
-      - name: Upload Frontend Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-build
-          path: |
-            frontend/.next/
-            frontend/public/
-            frontend/package.json
-            frontend/package-lock.json
+            - name: Install Sonar Scanner CLI
+              run: npm install -g sonar-scanner
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+            - name: Run SonarQube Scan
+              run: |
+                  npx sonar-scanner \
+                    -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+                    -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+              working-directory: frontend
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    frontend-build:
+        needs: frontend-ci
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "20"
+            - name: Restore cached node modules
+              id: cache-npm
+              uses: actions/cache@v3
+              with:
+                  path: frontend/node_modules
+                  key: ${{ runner.os }}-npm-cache-frontend-${{ hashFiles('frontend/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-npm-cache-frontend-
+            - name: Install Dependencies
+              run: npm ci
+              working-directory: frontend
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: frontend
-          file: frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:${{ github.sha }}
-            ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:latest
+            - name: Build Next.js
+              run: npm run build
+              working-directory: frontend
+
+            - name: Upload Frontend Build Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-build
+                  path: |
+                      frontend/.next/
+                      frontend/public/
+                      frontend/package.json
+                      frontend/package-lock.json
+
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build and push Docker image
+              uses: docker/build-push-action@v5
+              with:
+                  context: frontend
+                  file: frontend/Dockerfile
+                  push: true
+                  tags: |
+                      ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:${{ github.sha }}
+                      ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:latest

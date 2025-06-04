@@ -8,6 +8,7 @@
         "start": "next start",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
         "lint:report": "eslint . --ext .js,.jsx,.ts,.tsx -f json -o eslint-report.json",
+        "lint:style": "stylelint \"**/*.{css,scss}\" --formatter json --output-file stylelint-report.json",
         "test": "jest --coverage",
         "test:watch": "jest --watch"
     },
