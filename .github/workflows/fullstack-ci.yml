@@ -144,7 +144,7 @@ jobs:
               continue-on-error: true
 
             - name: Run Stylelint
-              run: npx stylelint "**/*.{css,scss}" --custom-formatter json > stylelint-report.json
+              run: npx stylelint "**/*.{css,scss}" --formatter json --output-file stylelint-report.json
               working-directory: frontend
               continue-on-error: true
 
