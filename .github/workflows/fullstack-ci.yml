@@ -29,6 +29,20 @@ jobs:
     backend-ci:
         needs: backend-setup
         runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:15.3
+                ports:
+                    - 65432:5432
+                env:
+                    POSTGRES_DB: koerperschmiede
+                    POSTGRES_USER: admin
+                    POSTGRES_PASSWORD: admin
+                options: >-
+                    --health-cmd="pg_isready -U admin -d koerperschmiede"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=5
         steps:
             - uses: actions/checkout@v4
             - name: Set up JDK
@@ -54,6 +68,16 @@ jobs:
                     -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BE }} \
                     -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
                     -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+              working-directory: backEnd
+
+            - name: SonarQube Scan via Maven
+              run: |
+                  ./mvnw sonar:sonar \
+                    -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BE }} \
+                    -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+                    -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                    -Dsonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports
               working-directory: backEnd
 
     backend-build:
