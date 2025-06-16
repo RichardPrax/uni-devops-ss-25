@@ -28,5 +28,5 @@ docker run -d \
   --name frontend-container \
   -e NEXT_PUBLIC_API_URL=http://host.docker.internal:8080 \
   -p 3000:3000 \
-  richardprax/devops-github-frontend
+  richardprax/devops-github-frontend:latest
 ```
