@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+    repository: richardprax/devops-github-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+service:
+    type: ClusterIP
+    port: 8080
+
+ingress:
+    enabled: true
+    host: backend.local
+    path: /
+
+database:
+    host: my-postgres-postgresql
+    port: 5432
+    name: koerperschmiede
+    user: admin
+    password: admin

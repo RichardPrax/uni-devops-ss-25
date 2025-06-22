@@ -1,20 +1,20 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  postgres:
-    container_name: postgres_koerperschmiede
-    image: postgres:15.3
-    restart: always
-    ports:
-      - '65432:5432'
-    environment:
-      POSTGRES_DB: koerperschmiede
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      PGDATA: /var/lib/postgresql/data/pgdata
-      TZ: 'Europe/Berlin'
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
+    postgres:
+        container_name: postgres_koerperschmiede
+        image: postgres:15.3
+        restart: always
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_DB: koerperschmiede
+            POSTGRES_USER: admin
+            POSTGRES_PASSWORD: admin
+            PGDATA: /var/lib/postgresql/data/pgdata
+            TZ: "Europe/Berlin"
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
 
 volumes:
-  postgres-data:
+    postgres-data:

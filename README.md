@@ -11,7 +11,7 @@ Uni DevOps Projekt
 ```bash
 docker run -d \
  --name backend-container \
- -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:65432/koerperschmiede \
+ -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/koerperschmiede \
  -e SPRING_DATASOURCE_USERNAME=admin \
  -e SPRING_DATASOURCE_PASSWORD=admin \
  -p 8080:8080 \
