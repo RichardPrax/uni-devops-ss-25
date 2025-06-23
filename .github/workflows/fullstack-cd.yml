@@ -12,7 +12,6 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Set version from CI
-              # Hier nehmen wir die Commit SHA aus der CI Pipeline als Version
               run: echo "VERSION=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
 
             - name: Log in to Docker Hub
@@ -48,12 +47,16 @@ jobs:
                   for i in {1..30}; do
                     if curl -s http://localhost:8080/actuator/health | grep '"status":"UP"'; then
                       echo "Backend is healthy"
-                      break
+                      exit 0
                     else
                       echo "Waiting for backend..."
                       sleep 5
                     fi
                   done
+                  echo "Backend not healthy, printing logs:"
+                  docker logs backend-container || true
+                  docker logs postgres-db || true
+                  exit 1
 
             - name: Check frontend
               run: |
