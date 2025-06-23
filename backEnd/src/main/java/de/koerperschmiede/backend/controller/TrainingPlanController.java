@@ -25,9 +25,8 @@ public class TrainingPlanController {
     private final TrainingPlanService trainingPlanService;
     private final AuthenticationService authenticationService;
 
-    // NOTE: Do not rename this method, it is UPPERCASE intentionally to trigger checkstyle warnings
     @GetMapping
-    public ResponseEntity<List<?>> FINDALLBYUSERID(@RequestParam UUID userId) {
+    public ResponseEntity<List<?>> findAllByUserId(@RequestParam UUID userId) {
 
         UserEntity user = authenticationService.getUserEntity();
 

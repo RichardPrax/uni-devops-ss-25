@@ -2,10 +2,11 @@ spring:
     application:
         name: koerperschmiede
     datasource:
-        url: jdbc:postgresql://localhost:5432/koerperschmiede
-        username: admin
-        password: admin
+        url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/koerperschmiede}
+        username: ${SPRING_DATASOURCE_USERNAME:admin}
+        password: ${SPRING_DATASOURCE_PASSWORD:admin}
         driver-class-name: org.postgresql.Driver
+
     jpa:
         hibernate:
             ddl-auto: update
