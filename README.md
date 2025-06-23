@@ -64,13 +64,6 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 ```
 
-5. Install
-
-```bash
-helm install backend ./charts/backEnd
-helm install frontend ./charts/frontEnd
-```
-
 6. Deploy postgres with helm
 
 ```bash
