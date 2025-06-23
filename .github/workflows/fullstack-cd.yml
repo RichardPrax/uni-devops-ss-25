@@ -62,7 +62,21 @@ jobs:
                   docker logs postgres-db || true
                   exit 1
 
-            - name: Check frontend
+            - name: Test login endpoint returns accessToken and userId when login as admin
+              run: |
+                  echo "🔐 Testing login..."
+                  RESPONSE=$(curl -s -X POST http://localhost:8080/api/v1/auth/authenticate \
+                    -H "Content-Type: application/json" \
+                    -d '{"email":"admin@admin.com", "password":"test"}')
+
+                  echo "Response: $RESPONSE"
+
+                  echo "$RESPONSE" | grep -q '"accessToken"' || (echo "❌ No accessToken in response" && exit 1)
+                  echo "$RESPONSE" | grep -q '"userId"' || (echo "❌ No userId in response" && exit 1)
+
+                  echo "✅ Login response is valid"
+
+            - name: Check frontend HTML response
               run: |
                   if curl -s http://localhost:3000 | grep "<!DOCTYPE html>"; then
                     echo "✅ Frontend is running"
@@ -71,3 +85,15 @@ jobs:
                     docker logs frontend-container || true
                     exit 1
                   fi
+
+            - name: Check frontend contains welcome heading
+              run: |
+                  curl -s http://localhost:3000 | grep -q '<h1[^>]*>Hallo Körperschmiede</h1>' \
+                    && echo "✅ Greeting found on homepage" \
+                    || (echo "❌ Greeting missing on homepage" && exit 1)
+
+            - name: Check login page contains login form
+              run: |
+                  curl -s http://localhost:3000/login | grep -q '<form' \
+                    && echo "✅ Login page contains form" \
+                    || (echo "❌ No login form found on login page" && exit 1)
