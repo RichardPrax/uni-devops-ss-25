@@ -2,7 +2,7 @@ spring:
     application:
         name: koerperschmiede
     datasource:
-        url: jdbc:postgresql://my-postgres-postgresql:5432/koerperschmiede
+        url: jdbc:postgresql://localhost:5432/koerperschmiede
         username: admin
         password: admin
         driver-class-name: org.postgresql.Driver
