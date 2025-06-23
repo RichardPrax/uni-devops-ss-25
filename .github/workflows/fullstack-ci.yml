@@ -33,7 +33,7 @@ jobs:
             postgres:
                 image: postgres:15.3
                 ports:
-                    - 65432:5432
+                    - 5432:5432
                 env:
                     POSTGRES_DB: koerperschmiede
                     POSTGRES_USER: admin
@@ -238,3 +238,5 @@ jobs:
                   tags: |
                       ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:${{ github.sha }}
                       ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:latest
+                  build-args: |
+                      NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
