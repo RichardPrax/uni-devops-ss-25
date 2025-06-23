@@ -10,6 +10,7 @@ jobs:
     deploy:
         if: ${{ github.event.workflow_run.conclusion == 'success' }}
         runs-on: ubuntu-latest
+
         steps:
             - name: Set version from CI
               run: echo "VERSION=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
@@ -20,9 +21,12 @@ jobs:
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
 
+            - name: Create Docker network
+              run: docker network create test-net
+
             - name: Start PostgreSQL Database
               run: |
-                  docker run -d --name postgres-db -p 5432:5432 \
+                  docker run -d --name postgres-db --network test-net \
                     -e POSTGRES_DB=koerperschmiede \
                     -e POSTGRES_USER=admin \
                     -e POSTGRES_PASSWORD=admin \
@@ -30,30 +34,30 @@ jobs:
 
             - name: Start Backend Container
               run: |
-                  docker run -d --name backend-container -p 8080:8080 \
-                    -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/koerperschmiede \
+                  docker run -d --name backend-container --network test-net -p 8080:8080 \
+                    -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/koerperschmiede \
                     -e SPRING_DATASOURCE_USERNAME=admin \
                     -e SPRING_DATASOURCE_PASSWORD=admin \
                     ${{ secrets.DOCKER_USERNAME }}/devops-github-backend:${{ env.VERSION }}
 
             - name: Start Frontend Container
               run: |
-                  docker run -d --name frontend-container -p 3000:3000 \
-                    -e NEXT_PUBLIC_API_URL=http://host.docker.internal:8080 \
+                  docker run -d --name frontend-container --network test-net -p 3000:3000 \
+                    -e NEXT_PUBLIC_API_URL=http://backend-container:8080 \
                     ${{ secrets.DOCKER_USERNAME }}/devops-github-frontend:${{ env.VERSION }}
 
             - name: Wait for backend to be healthy
               run: |
                   for i in {1..30}; do
                     if curl -s http://localhost:8080/actuator/health | grep '"status":"UP"'; then
-                      echo "Backend is healthy"
+                      echo "✅ Backend is healthy"
                       exit 0
                     else
-                      echo "Waiting for backend..."
+                      echo "⏳ Waiting for backend..."
                       sleep 5
                     fi
                   done
-                  echo "Backend not healthy, printing logs:"
+                  echo "❌ Backend not healthy, printing logs:"
                   docker logs backend-container || true
                   docker logs postgres-db || true
                   exit 1
@@ -61,8 +65,9 @@ jobs:
             - name: Check frontend
               run: |
                   if curl -s http://localhost:3000 | grep "<!DOCTYPE html>"; then
-                    echo "Frontend is running"
+                    echo "✅ Frontend is running"
                   else
-                    echo "Frontend is not responding"
+                    echo "❌ Frontend is not responding"
+                    docker logs frontend-container || true
                     exit 1
                   fi
