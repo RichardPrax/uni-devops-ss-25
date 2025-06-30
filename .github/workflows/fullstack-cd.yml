@@ -1,19 +1,20 @@
 name: Full Stack CD
 
 on:
-    workflow_run:
-        workflows: ["Full Stack CI"]
-        types:
-            - completed
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Docker image version (SHA oder Tag)"
+                required: true
+                type: string
 
 jobs:
     deploy:
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
         runs-on: ubuntu-latest
 
         steps:
-            - name: Set version from CI
-              run: echo "VERSION=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
+            - name: Set VERSION from input
+              run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
             - name: Log in to Docker Hub
               uses: docker/login-action@v3
