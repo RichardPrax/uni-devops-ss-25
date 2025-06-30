@@ -7,6 +7,7 @@ on:
                 description: "Docker image version (SHA oder Tag)"
                 required: true
                 type: string
+                default: "latest"
 
 jobs:
     deploy:
