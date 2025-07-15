@@ -3,7 +3,6 @@
 ## 📚 Inhaltsverzeichnis
 
 -   [🎯 Projektübersicht](#-projektübersicht)
--   [👨‍⚕️ Fachlicher Kontext](#️-fachlicher-kontext)
 -   [🏗️ Architektur & Technologie-Stack](#️-architektur--technologie-stack)
 -   [⚙️ CI/CD Pipeline](#️-cicd-pipeline)
 -   [📦 Helm Charts & Infrastructure as Code](#-helm-charts--infrastructure-as-code)
@@ -27,20 +26,6 @@ Dieses DevOps-Projekt implementiert eine **Fullstack-Webanwendung** zur Verwaltu
 -   **CI/CD**: GitHub Actions für automatisierte Build-, Test- und Deployment-Pipelines
 -   **Code Quality**: Statische Analyse mit SonarQube, Linting und Testing
 -   **Monitoring**: Health Checks und Application Observability
-
----
-
-## 👨‍⚕️ Fachlicher Kontext
-
-Die Anwendung verwaltet eine **Physiotherapiepraxis** mit Fokus auf Trainings- und Kursmanagement. Die Wahl eines realistischen fachlichen Kontexts ermöglicht es, echte Geschäftsanforderungen in technische Lösungen zu übersetzen.
-
-### 🏥 Funktionale Anforderungen
-
--   **Benutzerverwaltung**: Authentifizierung und Autorisierung
--   **Kursverwaltung**: Erstellung und Verwaltung von Therapiekursen
--   **Terminplanung**: Buchung und Verwaltung von Therapieterminen
--   **Patientenverwaltung**: Grundlegende Patientendaten
--   **Reporting**: Einfache Auswertungen und Übersichten
 
 ---
 
@@ -103,12 +88,11 @@ graph LR
     D --> F[Lint & Test]
     E --> G[SonarQube]
     F --> H[SonarQube]
-    G --> I[Docker Build]
-    H --> J[Docker Build]
+    G --> I[Docker Build & Push]
+    H --> J[Docker Build & Push]
     I --> K[CD Pipeline]
     J --> K
-    K --> L[Integration Tests]
-    L --> M[Deployment Validation]
+    K --> L[Deployment Validation]
 ```
 
 ### 🔄 Continuous Integration (CI) - `fullstack-ci.yml`
@@ -229,24 +213,18 @@ workflow_dispatch:
 -   SonarQube Token Management
 -   Keine Hardcoded Credentials in Code
 
-#### **Artefakt-Management**
-
--   Build-Artefakte werden zwischen Jobs übertragen
--   Docker Images mit SHA-Tags für Reproduzierbarkeit
--   Separate Uploads für JAR und Frontend-Build
-
 ### 📊 Quality Gates
 
 -   **Backend**: Maven Tests + Checkstyle + SonarQube
 -   **Frontend**: Jest Tests + ESLint + Stylelint + SonarQube
--   **Integration**: End-to-End API & UI Tests in CD
 -   **Coverage**: JaCoCo (Backend) & Jest (Frontend) Reports
+-   **SonarQube**: Definierte QualityGates in SonarQube
 
 ---
 
 ## 📦 Helm Charts & Infrastructure as Code
 
-Als Bonus für unsere Projektarbeit habe ich versucht, **Helm Charts** für deklaratives sund wiederverwendbares Kubernetes-Deployment zu benutzen.
+Als Bonus für die Projektarbeit habe ich versucht, **Helm Charts** für deklaratives und wiederverwendbares Kubernetes-Deployment zu benutzen.
 Helm fungiert als "Package Manager" für Kubernetes und ermöglicht es, komplexe Anwendungen mit Templates und konfigurierbaren Werten zu verwalten.
 
 ### 🎯 Warum Helm?
@@ -361,25 +339,11 @@ Das Backend Chart verwendet folgende konfigurierbare Parameter:
                                             [PostgreSQL Service:5432]
 ```
 
-#### **Warum diese Architektur?**
-
-1. **Separation of Concerns**: Jede Komponente hat ihre eigene Chart
-2. **Skalierbarkeit**: `replicaCount` kann pro Service angepasst werden
-3. **Konfigurierbarkeit**: Verschiedene Umgebungen (dev, staging, prod) können unterschiedliche `values.yaml` verwenden
-4. **Service Discovery**: Kubernetes DNS löst Service-Namen automatisch auf
-5. **Load Balancing**: Services verteilen Traffic automatisch auf verfügbare Pods
-
 ### 🔧 Erweiterte Konfiguration
 
 #### **API URL Konfiguration**
 
 Das Frontend kann für verschiedene Umgebungen konfiguriert werden, ohne Code-Änderungen:
-
-**Lokale Entwicklung (`frontend/.env.local`)**:
-
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8080
-```
 
 **Kubernetes Development (`charts/frontend/values-development.yaml`)**:
 
@@ -407,29 +371,11 @@ helm install frontend ./charts/frontend -f charts/frontend/values-development.ya
 helm install backend ./charts/backEnd -f values-prod.yaml
 ```
 
-#### **Image-Tags überschreiben**
-
-In CI/CD-Pipelines wird das Image-Tag dynamisch gesetzt:
-
-```bash
-helm upgrade backend ./charts/backEnd \
-  --set image.tag=$GITHUB_SHA \
-  --install
-```
-
-#### **Skalierung**
-
-Horizontale Skalierung durch Anpassung der Replica-Anzahl:
-
-```bash
-helm upgrade backend ./charts/backEnd \
-  --set replicaCount=3 \
-  --install
-```
-
 ---
 
 ## 🏷️ Versionierung & Container-Management
+
+---
 
 ### 🏷️ Image-Tagging Strategie
 
@@ -454,7 +400,7 @@ richardprax/devops-github-backend:a1b2c3d
 richardprax/devops-github-frontend:latest
 richardprax/devops-github-backend:latest
 
-# Spezielle Helm Tags für Kubernetes Deployments
+# Spezielle Helm Tags für lokales Kubernetes Deployments
 richardprax/devops-github-frontend:latest-helm
 richardprax/devops-github-backend:latest (verwendet für Helm)
 ```
@@ -465,15 +411,13 @@ Das Projekt erstellt **zwei verschiedene Frontend Images** für unterschiedliche
 
 1. **Standard Image** (`:latest`):
     - API URL: `http://localhost:8080`
-    - Verwendung: Docker Compose, lokale Entwicklung
+    - Verwendung: Docker Compose, lokale Entwicklung, Deployment Validation in der Pipeline
 2. **Helm Image** (`:latest-helm`):
     - API URL: `http://backend.local`
     - Verwendung: Kubernetes/Minikube Deployments
     - Ermöglicht Service-zu-Service Kommunikation über Ingress
 
 Diese Trennung ist notwendig, da Next.js die API URL zur **Build-Zeit** festlegt und nicht zur Laufzeit geändert werden kann.
-
-````
 
 ### 🐳 Container-Strategie
 
@@ -493,25 +437,54 @@ RUN ./mvnw clean package -DskipTests
 FROM openjdk:21-jre-slim
 COPY --from=builder target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
-````
+```
+
+Die Build Stage ist hier nur exemplarisch mit aufgeführt, der Build Prozess wird in der Pipeline separat ausgeführt.
 
 **Frontend (Next.js)**:
 
 ```dockerfile
-# Dependencies Stage
+# Install dependencies only when needed
 FROM node:20-alpine AS deps
-COPY package*.json ./
-RUN npm ci --only=production
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-# Build Stage
+# Rebuild the source code only when needed
 FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Add build argument for API URL
+ARG NEXT_PUBLIC_API_URL=http://localhost:8080
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN npm run build
 
-# Runtime Stage
+# Production image, copy all the files and run next
 FROM node:20-alpine AS runner
-COPY --from=builder .next ./
-ENTRYPOINT ["npm", "start"]
+WORKDIR /app
+
+ENV NODE_ENV production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT 3000
+
+CMD ["node", "server.js"]
+
 ```
 
 #### **Optimierungen**
@@ -570,7 +543,7 @@ docker run -d --name frontend \
 
 ---
 
-### Docker Deployment
+### Docker Deployment - Weg 2
 
 #### 🔧 Voraussetzungen
 
@@ -707,13 +680,8 @@ helm install frontend ./charts/frontend --set image.tag=latest-helm
 # Optional: kubectl Alias setzen
 alias kubectl="minikube kubectl --"
 
-# Status prüfen
-kubectl get pods
-kubectl get svc
-kubectl get ingress
-
 # Alle Pods sollten den Status "Running" haben
-kubectl get pods -o wide
+kubectl get pods, svc, ingress -o wide
 ```
 
 #### 🌐 Zugriff auf die Anwendung
@@ -794,24 +762,22 @@ kubectl describe ingress frontend-ingress
 -   ❌ `latest` Tag → API calls gehen an `localhost:8080`
 -   ✅ `latest-helm` Tag → API calls gehen an `backend.local`
 
-**Komplettes Neudeployment:**
+### Komplettes Neu-Deployment
 
-# Logs anzeigen
+#### Logs anzeigen
 
 kubectl logs -l app=backend
 kubectl logs -l app=frontend
 
-# Pods und Services prüfen
+#### Pods und Services prüfen
 
 kubectl get pods,svc,ingress
 
-# Chart deinstallieren
+#### Chart deinstallieren
 
 helm uninstall backend
 helm uninstall frontend
 helm uninstall my-postgres
-
-````
 
 ---
 
@@ -832,12 +798,12 @@ docker ps -a
 # Ports prüfen
 netstat -tulpn | grep :8080
 netstat -tulpn | grep :3000
-````
+```
 
 #### Datenbankverbindung
 
 ```bash
-# PostgreSQL Container prüfen
+# PostgreSQL Container prüfen => Passwort: admin
 docker exec -it postgres psql -U admin -d koerperschmiede
 
 # Netzwerk-Connectivity testen
@@ -930,14 +896,14 @@ curl -u $SONAR_TOKEN: $SONAR_HOST_URL/api/projects/search
 
 ### 🚨 Häufige Probleme
 
-| Problem                         | Lösung                                                           |
-| ------------------------------- | ---------------------------------------------------------------- |
-| Port bereits belegt             | `docker stop $(docker ps -q)` oder anderen Port verwenden        |
-| Image nicht gefunden            | Tag prüfen: `docker images`                                      |
-| Minikube IP ändert sich         | Hosts-Datei neu konfigurieren                                    |
-| Helm Installation fehlschlägt   | `helm uninstall` und erneut versuchen                            |
-| PostgreSQL Connection Timeout   | Container-Reihenfolge beachten (DB → Backend → Frontend)         |
-| **Services nicht erreichbar**   | **Docker-Treiber: Port-Forward nutzen, VirtualBox: Direkte IPs** |
-| **Ingress zeigt keine ADDRESS** | **Warte bis Ingress Controller bereit ist (1-2 Min)**            |
+| Problem                       | Lösung                                                       |
+| ----------------------------- | ------------------------------------------------------------ |
+| Port bereits belegt           | `docker stop $(docker ps -q)` oder anderen Port verwenden    |
+| Image nicht gefunden          | Tag prüfen: `docker images`                                  |
+| Minikube IP ändert sich       | Hosts-Datei neu konfigurieren                                |
+| Helm Installation fehlschlägt | `helm uninstall` und erneut versuchen                        |
+| PostgreSQL Connection Timeout | Container-Reihenfolge beachten (DB → Backend → Frontend)     |
+| Services nicht erreichbar     | Docker-Treiber: Port-Forward nutzen, VirtualBox: Direkte IPs |
+| Ingress zeigt keine ADDRESS   | Warte bis Ingress Controller bereit ist (1-2 Min)            |
 
 ---
