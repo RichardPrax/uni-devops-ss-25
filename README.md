@@ -595,6 +595,10 @@ curl http://localhost:3000
 
 ### Kubernetes/Minikube Deployment
 
+Die nachfolgenden Anweisungen beschreiben die Schritte, welche auszuführen sind um das Deployment via Kubernetes lokal auf einem Unix basiertem Betriebssystem zu starten.
+Anpassungen an andere Betriebssysteme sind spezifisch bei Abschnitt 3 vorzunehmen.
+Da ich dieses Projekt auf meinem Laptop bearbeite, auf welchem Ubuntu läuft, habe ich keine weiteren Konfigurationen angegeben.
+
 #### ✅ Voraussetzungen
 
 -   Minikube
@@ -766,18 +770,30 @@ kubectl describe ingress frontend-ingress
 
 #### Logs anzeigen
 
+```bash
 kubectl logs -l app=backend
 kubectl logs -l app=frontend
+```
 
 #### Pods und Services prüfen
 
+```bash
 kubectl get pods,svc,ingress
+```
 
 #### Chart deinstallieren
 
+```bash
 helm uninstall backend
 helm uninstall frontend
 helm uninstall my-postgres
+```
+
+#### Hard Reset
+
+```bash
+minikube delete
+```
 
 ---
 
