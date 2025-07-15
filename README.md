@@ -586,8 +586,17 @@ curl http://localhost:3000
 ##### 1. **Minikube initialisieren**
 
 ```bash
+# Option 1: Docker-Treiber (Standard, erfordert Port-Forward)
 minikube start
+
+# Option 2: VirtualBox-Treiber (IP direkt erreichbar)
+minikube start --driver=virtualbox
 ```
+
+**Wichtiger Hinweis:**
+
+-   **Docker-Treiber**: Schnell, aber Minikube läuft in isoliertem Netzwerk → **Port-Forward erforderlich**
+-   **VirtualBox-Treiber**: IP direkt vom Host erreichbar → **Direkte URLs funktionieren**
 
 ##### 2. **Ingress aktivieren**
 
@@ -646,9 +655,27 @@ kubectl get ingress
 
 #### 🌐 Zugriff auf die Anwendung
 
+**Bei VirtualBox-Treiber (Direkte URLs):**
+
 -   **Frontend**: http://frontend.local
 -   **Backend API**: http://backend.local
 -   **PostgreSQL**: Via Port-Forward `kubectl port-forward svc/my-postgres-postgresql 5432:5432`
+
+**Bei Docker-Treiber (Port-Forward erforderlich):**
+
+```bash
+# Port-Forward zum Ingress Controller einrichten
+kubectl port-forward --namespace=ingress-nginx service/ingress-nginx-controller 8080:80
+
+# In einem neuen Terminal testen:
+curl -H "Host: backend.local" http://localhost:8080/actuator/health
+curl -H "Host: frontend.local" http://localhost:8080/
+
+# Browser öffnen mit:
+# http://localhost:8080 (Ingress Controller leitet automatisch weiter)
+```
+
+**Hinweis**: Bei Docker-Treiber läuft Minikube in einem isolierten Docker-Netzwerk, weshalb Port-Forward notwendig ist.
 
 #### 🔍 Helm Troubleshooting
 
@@ -725,12 +752,33 @@ kubectl get events --sort-by=.metadata.creationTimestamp
 # Ingress Controller Status
 kubectl get pods -n ingress-nginx
 
-# Minikube Tunnel (falls nötig)
-minikube tunnel
+# Prüfen ob Ingress Add-on aktiviert ist
+minikube addons list | grep ingress
+
+# Ingress Add-on aktivieren falls nicht aktiv
+minikube addons enable ingress
+
+# Warten bis Ingress Controller bereit ist (kann 1-2 Minuten dauern)
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=90s
+
+# Ingress-Ressourcen prüfen (ADDRESS sollte nicht leer sein)
+kubectl get ingress
 
 # DNS/Hosts Konfiguration prüfen
 nslookup backend.local
 nslookup frontend.local
+
+# LÖSUNG für Docker-Treiber: Port-Forward verwenden
+kubectl port-forward --namespace=ingress-nginx service/ingress-nginx-controller 8080:80
+# Dann testen: curl -H "Host: backend.local" http://localhost:8080/actuator/health
+
+# LÖSUNG für VirtualBox-Treiber: Cluster neu starten
+minikube stop && minikube delete
+minikube start --driver=virtualbox
+# Dann: minikube ip und diese IP in /etc/hosts eintragen
 ```
 
 #### Image Pull Errors
@@ -769,12 +817,14 @@ curl -u $SONAR_TOKEN: $SONAR_HOST_URL/api/projects/search
 
 ### 🚨 Häufige Probleme
 
-| Problem                       | Lösung                                                    |
-| ----------------------------- | --------------------------------------------------------- |
-| Port bereits belegt           | `docker stop $(docker ps -q)` oder anderen Port verwenden |
-| Image nicht gefunden          | Tag prüfen: `docker images`                               |
-| Minikube IP ändert sich       | Hosts-Datei neu konfigurieren                             |
-| Helm Installation fehlschlägt | `helm uninstall` und erneut versuchen                     |
-| PostgreSQL Connection Timeout | Container-Reihenfolge beachten (DB → Backend → Frontend)  |
+| Problem                         | Lösung                                                           |
+| ------------------------------- | ---------------------------------------------------------------- |
+| Port bereits belegt             | `docker stop $(docker ps -q)` oder anderen Port verwenden        |
+| Image nicht gefunden            | Tag prüfen: `docker images`                                      |
+| Minikube IP ändert sich         | Hosts-Datei neu konfigurieren                                    |
+| Helm Installation fehlschlägt   | `helm uninstall` und erneut versuchen                            |
+| PostgreSQL Connection Timeout   | Container-Reihenfolge beachten (DB → Backend → Frontend)         |
+| **Services nicht erreichbar**   | **Docker-Treiber: Port-Forward nutzen, VirtualBox: Direkte IPs** |
+| **Ingress zeigt keine ADDRESS** | **Warte bis Ingress Controller bereit ist (1-2 Min)**            |
 
 ---
