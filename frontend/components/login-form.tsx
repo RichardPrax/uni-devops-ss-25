@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthResponse } from "@/app/entities/AuthResponse";
+import { getApiUrl } from "@/lib/config";
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
     const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
         e.preventDefault();
 
         try {
-            const response = await fetch("http://localhost:8080/api/v1/auth/authenticate", {
+            const response = await fetch(getApiUrl("/auth/authenticate"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),

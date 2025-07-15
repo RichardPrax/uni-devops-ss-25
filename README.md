@@ -331,13 +331,15 @@ Das Backend Chart verwendet folgende konfigurierbare Parameter:
 -   **`image.repository`** – Docker Image (`richardprax/devops-github-frontend`)
 -   **`service.port: 3000`** – Next.js Standard-Port
 -   **`ingress.host: frontend.local`** – Hostname für die Web-UI
+-   **`app.apiUrl`** – Backend API URL (konfigurierbar für verschiedene Umgebungen)
 
 #### **Templates**
 
 1. **Deployment** (`templates/deployment.yaml`):
 
     - Next.js Container auf Port 3000
-    - Umgebungsvariablen werden zur Laufzeit vom Container gelesen
+    - **Environment Variables**: Dynamische API-URL-Konfiguration über `NEXT_PUBLIC_API_URL`
+    - Ermöglicht flexibles Deployment in verschiedenen Umgebungen
 
 2. **Service** (`templates/service.yaml`):
 
@@ -369,13 +371,37 @@ Das Backend Chart verwendet folgende konfigurierbare Parameter:
 
 ### 🔧 Erweiterte Konfiguration
 
+#### **API URL Konfiguration**
+
+Das Frontend kann für verschiedene Umgebungen konfiguriert werden, ohne Code-Änderungen:
+
+**Lokale Entwicklung (`frontend/.env.local`)**:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+**Kubernetes Development (`charts/frontend/values-development.yaml`)**:
+
+```yaml
+app:
+    apiUrl: "http://backend:8080" # Interner Service-Name
+```
+
+**Production (`charts/frontend/values-production.yaml`)**:
+
+```yaml
+app:
+    apiUrl: "https://api.example.com" # Externe API URL
+```
+
 #### **Verschiedene Umgebungen**
 
 Für verschiedene Umgebungen können separate Values-Dateien erstellt werden:
 
 ```bash
 # Development
-helm install backend ./charts/backEnd -f values-dev.yaml
+helm install frontend ./charts/frontend -f charts/frontend/values-development.yaml
 
 # Production
 helm install backend ./charts/backEnd -f values-prod.yaml
@@ -427,7 +453,27 @@ richardprax/devops-github-backend:a1b2c3d
 # Zusätzlich: Latest Tag für aktuelle Entwicklung
 richardprax/devops-github-frontend:latest
 richardprax/devops-github-backend:latest
+
+# Spezielle Helm Tags für Kubernetes Deployments
+richardprax/devops-github-frontend:latest-helm
+richardprax/devops-github-backend:latest (verwendet für Helm)
 ```
+
+#### **Frontend Image Varianten**
+
+Das Projekt erstellt **zwei verschiedene Frontend Images** für unterschiedliche Deployment-Szenarien:
+
+1. **Standard Image** (`:latest`):
+    - API URL: `http://localhost:8080`
+    - Verwendung: Docker Compose, lokale Entwicklung
+2. **Helm Image** (`:latest-helm`):
+    - API URL: `http://backend.local`
+    - Verwendung: Kubernetes/Minikube Deployments
+    - Ermöglicht Service-zu-Service Kommunikation über Ingress
+
+Diese Trennung ist notwendig, da Next.js die API URL zur **Build-Zeit** festlegt und nicht zur Laufzeit geändert werden kann.
+
+````
 
 ### 🐳 Container-Strategie
 
@@ -447,7 +493,7 @@ RUN ./mvnw clean package -DskipTests
 FROM openjdk:21-jre-slim
 COPY --from=builder target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
-```
+````
 
 **Frontend (Next.js)**:
 
@@ -587,9 +633,11 @@ curl http://localhost:3000
 
 ```bash
 # Option 1: Docker-Treiber (Standard, erfordert Port-Forward)
+# Docker muss gestartet sein
 minikube start
 
 # Option 2: VirtualBox-Treiber (IP direkt erreichbar)
+# ist die Option welche ich im Rahmen des Uni-Projektes bevorzugt habe
 minikube start --driver=virtualbox
 ```
 
@@ -621,7 +669,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 ```
 
-##### 5. **PostgreSQL installieren**
+##### 5. **PostgreSQL installieren (WICHTIG: Zuerst)**
 
 ```bash
 helm install my-postgres bitnami/postgresql \
@@ -631,15 +679,27 @@ helm install my-postgres bitnami/postgresql \
   --set auth.password=admin
 ```
 
-##### 6. **Application Services deployen**
+⚠️ **Warte bis PostgreSQL bereit ist, bevor du mit den nächsten Schritten fortfährst:**
 
 ```bash
-# Backend deployen
+# Warten bis PostgreSQL Pod läuft
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql --timeout=300s
+```
+
+##### 6. **Application Services deployen (REIHENFOLGE BEACHTEN)**
+
+```bash
+# 1. Backend deployen (braucht PostgreSQL)
 helm install backend ./charts/backEnd
 
-# Frontend deployen
-helm install frontend ./charts/frontend
+# Warten bis Backend bereit ist
+kubectl wait --for=condition=ready pod -l app=backend --timeout=300s
+
+# 2. Frontend deployen (braucht Backend)
+helm install frontend ./charts/frontend --set image.tag=latest-helm
 ```
+
+⚠️ **Wichtiger Hinweis:** Für Helm Deployments verwende das spezielle Frontend Image mit `latest-helm` Tag, das für `backend.local` API URLs vorkonfiguriert ist.
 
 ##### 7. **Deployment validieren**
 
@@ -651,6 +711,9 @@ alias kubectl="minikube kubectl --"
 kubectl get pods
 kubectl get svc
 kubectl get ingress
+
+# Alle Pods sollten den Status "Running" haben
+kubectl get pods -o wide
 ```
 
 #### 🌐 Zugriff auf die Anwendung
@@ -675,9 +738,32 @@ curl -H "Host: frontend.local" http://localhost:8080/
 # http://localhost:8080 (Ingress Controller leitet automatisch weiter)
 ```
 
+#### 🔐 Login & Zugriff
+
+Nach erfolgreichem Deployment kannst du die Anwendung wie folgt nutzen:
+
+1. **Hauptseite aufrufen**:
+
+    - VirtualBox: http://frontend.local
+    - Docker: http://localhost:8080 (mit Port-Forward)
+
+2. **Admin Login**:
+
+    - URL: http://frontend.local/login (oder http://localhost:8080/login)
+    - **Benutzername**: `admin@admin.com`
+    - **Passwort**: `test`
+
+3. **Benutzer Login**:
+    - **Benutzername**: `user@user.com`
+    - **Passwort**: `test`
+
+ℹ️ **Hinweis**: Die Test-Benutzer werden automatisch durch Liquibase beim ersten Start der Backend-Anwendung erstellt.
+
 **Hinweis**: Bei Docker-Treiber läuft Minikube in einem isolierten Docker-Netzwerk, weshalb Port-Forward notwendig ist.
 
 #### 🔍 Helm Troubleshooting
+
+**Häufige Deployment-Probleme:**
 
 ```bash
 # Chart-Status prüfen
@@ -687,18 +773,45 @@ helm list
 helm status backend
 helm status frontend
 
+# Pod-Status und Logs prüfen
+kubectl get pods -o wide
+kubectl logs -l app=backend
+kubectl logs -l app=frontend
+
+# Ingress Status prüfen
+kubectl get ingress
+kubectl describe ingress backend-ingress
+kubectl describe ingress frontend-ingress
+```
+
+**Deployment-Reihenfolge Problem:**
+
+-   ❌ Frontend startet vor Backend → API-Verbindung fehlgeschlagen
+-   ✅ PostgreSQL → Backend → Frontend (mit Warten zwischen den Schritten)
+
+**Falsches Frontend Image:**
+
+-   ❌ `latest` Tag → API calls gehen an `localhost:8080`
+-   ✅ `latest-helm` Tag → API calls gehen an `backend.local`
+
+**Komplettes Neudeployment:**
+
 # Logs anzeigen
+
 kubectl logs -l app=backend
 kubectl logs -l app=frontend
 
 # Pods und Services prüfen
+
 kubectl get pods,svc,ingress
 
 # Chart deinstallieren
+
 helm uninstall backend
 helm uninstall frontend
 helm uninstall my-postgres
-```
+
+````
 
 ---
 
@@ -719,7 +832,7 @@ docker ps -a
 # Ports prüfen
 netstat -tulpn | grep :8080
 netstat -tulpn | grep :3000
-```
+````
 
 #### Datenbankverbindung
 

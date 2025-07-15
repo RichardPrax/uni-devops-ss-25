@@ -13,7 +13,7 @@ export function useFetchUser(userId: string) {
         setError(null);
 
         try {
-            const data = await apiFetch<User>(`http://localhost:8080/api/v1/users/${userId}`, {
+            const data = await apiFetch<User>(`/users/${userId}`, {
                 method: "GET",
             });
             setUser(data);

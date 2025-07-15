@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
     repository: richardprax/devops-github-frontend
-    tag: latest
+    tag: latest-helm
     pullPolicy: IfNotPresent
 
 service:
@@ -13,3 +13,7 @@ ingress:
     enabled: true
     host: frontend.local
     path: /
+
+app:
+    # API URL for the backend - using external ingress URL
+    apiUrl: "http://backend.local"

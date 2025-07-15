@@ -11,7 +11,7 @@ export function useDeleteGeneralExercise() {
         setError(null);
 
         try {
-            return await apiFetch(`http://localhost:8080/api/v1/general-exercises/${id}`, {
+            return await apiFetch(`/general-exercises/${id}`, {
                 method: "DELETE",
             });
         } catch (error: unknown) {

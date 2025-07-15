@@ -12,7 +12,7 @@ export function useCreateGeneralExercise() {
         setError(null);
 
         try {
-            return await apiFetch("http://localhost:8080/api/v1/general-exercises", {
+            return await apiFetch("/general-exercises", {
                 method: "POST",
                 body: JSON.stringify(data),
             });

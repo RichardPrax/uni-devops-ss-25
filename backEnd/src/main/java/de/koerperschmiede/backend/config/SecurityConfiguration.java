@@ -15,6 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
@@ -25,25 +27,23 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfiguration {
-    private static final String[] WHITE_LIST_URL = {"/api/v1/auth/**", "/actuator/health"};
+
+    private static final String[] WHITE_LIST_URL = {
+        "/api/v1/auth/**",
+        "/actuator/health"
+    };
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutHandler logoutHandler;
 
-    // TODO: should we define authorization for the endpoints in the controller classes or general here
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(request -> {
-                CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:3000"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-                config.setAllowedHeaders(List.of("*"));
-                config.setAllowCredentials(true);
-                return config;
-            }))
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // <- CORS hier aktivieren
             .authorizeHttpRequests(req -> req
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Preflight requests erlauben
                 .requestMatchers(WHITE_LIST_URL).permitAll()
                 .requestMatchers("/api/v1/general-exercises/**").hasRole(Role.ADMIN.toString())
                 .requestMatchers(HttpMethod.POST, "/api/v1/training-plans/**").hasRole(Role.ADMIN.toString())
@@ -59,10 +59,23 @@ public class SecurityConfiguration {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .logout(logout -> logout.logoutUrl("/api/v1/auth/logout")
                 .addLogoutHandler(logoutHandler)
-                .logoutSuccessHandler((request, response,
-                                       authentication) -> SecurityContextHolder
-                    .clearContext()));
+                .logoutSuccessHandler((request, response, authentication) -> 
+                    SecurityContextHolder.clearContext())
+            );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOriginPattern("*"); // Alle Ursprünge erlauben
+        config.setAllowedMethods(List.of("*")); // Alle Methoden
+        config.setAllowedHeaders(List.of("*")); // Alle Header
+        config.setAllowCredentials(false); // Muss false sein bei *
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config); // Für alle Pfade
+        return source;
     }
 }

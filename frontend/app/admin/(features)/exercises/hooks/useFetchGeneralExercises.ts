@@ -13,7 +13,7 @@ export function useFetchGeneralExercises() {
         setError(null);
 
         try {
-            const data = await apiFetch<GeneralExercise[]>("http://localhost:8080/api/v1/general-exercises", {
+            const data = await apiFetch<GeneralExercise[]>("/general-exercises", {
                 method: "GET",
             });
             setExercises(data);

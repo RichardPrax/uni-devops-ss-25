@@ -1,4 +1,6 @@
-export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+import { getApiUrl } from "./config";
+
+export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
     let jwtToken: string | null = null;
 
     // Prüfen, ob der Code im Browser läuft
@@ -12,6 +14,8 @@ export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T
         ...(options?.headers || {}),
     };
 
+    // Convert endpoint to full URL if it starts with /
+    const url = endpoint.startsWith("/") ? getApiUrl(endpoint) : endpoint;
     const response = await fetch(url, { ...options, headers });
 
     if (!response.ok) {

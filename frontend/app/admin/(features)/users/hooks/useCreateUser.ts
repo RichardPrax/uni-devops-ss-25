@@ -12,7 +12,7 @@ export function useCreateUser() {
         setError(null);
 
         try {
-            return await apiFetch("http://localhost:8080/api/v1/auth/register", {
+            return await apiFetch("/auth/register", {
                 method: "POST",
                 body: JSON.stringify(userData),
             });
