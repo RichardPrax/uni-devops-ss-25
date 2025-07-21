@@ -608,17 +608,17 @@ Da ich dieses Projekt auf meinem Laptop bearbeite, auf welchem Ubuntu läuft, ha
 
 ##### 1. **Minikube initialisieren**
 
-Ich habe mich bei der lokalen Installation für Option 2 zum testen entschieden, damit ich die Port-Forwarding Thematik wenn man Docker nutzt erstmal außen vor lassen kann, der vollständigkeit halber ist es jedoch trotzdem mit angegeben.
-In Kurz: **Option 2 funktioniert mit diesen Schritten einfacher und zuverlässiger!**
+Ich habe mich bei der lokalen Installation für Option 1 zum testen entschieden, damit ich die Port-Forwarding Thematik wenn man Docker nutzt erstmal außen vor lassen kann, der vollständigkeit halber ist es jedoch trotzdem mit angegeben.
+In Kurz: **Option 1 funktioniert mit diesen Schritten einfacher und zuverlässiger!**
 
 ```bash
-# Option 1: Docker-Treiber (Standard, erfordert Port-Forward)
-# Docker muss gestartet sein
-minikube start
-
-# Option 2: VirtualBox-Treiber (IP direkt erreichbar)
+# Option 1: VirtualBox-Treiber (IP direkt erreichbar)
 # ist die Option welche ich im Rahmen des Uni-Projektes bevorzugt habe
 minikube start --driver=virtualbox
+
+# Option 2: Docker-Treiber (Standard, erfordert Port-Forward)
+# Docker muss gestartet sein
+minikube start
 ```
 
 **Wichtiger Hinweis:**
