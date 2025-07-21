@@ -608,6 +608,9 @@ Da ich dieses Projekt auf meinem Laptop bearbeite, auf welchem Ubuntu läuft, ha
 
 ##### 1. **Minikube initialisieren**
 
+Ich habe mich bei der lokalen Installation für Option 2 zum testen entschieden, damit ich die Port-Forwarding Thematik wenn man Docker nutzt erstmal außen vor lassen kann, der vollständigkeit halber ist es jedoch trotzdem mit angegeben.
+In Kurz: **Option 2 funktioniert mit diesen Schritten einfacher und zuverlässiger!**
+
 ```bash
 # Option 1: Docker-Treiber (Standard, erfordert Port-Forward)
 # Docker muss gestartet sein
